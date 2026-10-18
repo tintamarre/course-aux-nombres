@@ -16,6 +16,7 @@ import { useSettings } from './useSettings'
 import { getAudioContext } from './useSounds'
 import { bestVoice, isFrench, voiceScore } from './voices'
 import manifest from '../data/audio-manifest.json'
+import { pronounce } from '../data/words'
 
 const settings = useSettings()
 let voice: SpeechSynthesisVoice | null = null
@@ -143,7 +144,7 @@ function stopClip(): void {
 }
 
 function utterance(text: string, rate: number): SpeechSynthesisUtterance {
-  const u = new SpeechSynthesisUtterance(text)
+  const u = new SpeechSynthesisUtterance(pronounce(text))
   u.lang = voice?.lang ?? 'fr-FR'
   if (voice) u.voice = voice
   u.rate = Math.min(2, settings.voiceRate * rate)

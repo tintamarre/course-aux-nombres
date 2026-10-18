@@ -9,3 +9,11 @@ export const numberWord = (n: number): string => NUMBER_WORDS[n] ?? String(n)
 
 export const operationWords = (a: number, op: '+' | '-', b: number): string =>
   `${numberWord(a)} ${op === '+' ? 'plus' : 'moins'} ${numberWord(b)}`
+
+const PLUS_BEFORE_NUMBER = new RegExp(`\\bplus (?=(${NUMBER_WORDS.join('|')})\\b)`, 'g')
+
+/**
+ * Text given to the speech engines: in an operation « plus » is said « plusse », but the engines
+ * read it « plu » (as in « plus grand »). Only the sound changes, the text shown stays « plus ».
+ */
+export const pronounce = (text: string): string => text.replace(PLUS_BEFORE_NUMBER, 'plusse ')

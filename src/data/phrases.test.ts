@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { allPhrases } from './phrases'
 import manifest from './audio-manifest.json'
+import { pronounce } from './words'
 
 describe('recorded voice', () => {
   it('has a clip for every sentence the game can say (regenerate with scripts/audio if this fails)', () => {
@@ -23,5 +24,14 @@ describe('verdict variants', () => {
       expect(v).not.toBe(previous)
       previous = v
     }
+  })
+})
+
+describe('pronunciation', () => {
+  it('says « plusse » in an operation but keeps « plus grand »', () => {
+    expect(pronounce('Sept plus quatre, égale onze.')).toBe('Sept plusse quatre, égale onze.')
+    expect(pronounce('vingt plus un, égale vingt et un.')).toBe('vingt plusse un, égale vingt et un.')
+    expect(pronounce("Cinq, c'est plus grand que deux.")).toBe("Cinq, c'est plus grand que deux.")
+    expect(pronounce('Le crabe a plus de pièces.')).toBe('Le crabe a plus de pièces.')
   })
 })

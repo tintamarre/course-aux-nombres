@@ -42,20 +42,22 @@ def model_path() -> Path:
 
 
 def clip_name(text: str) -> str:
+    # named after the text actually synthesised, so a pronunciation fix gets a new file name
     return hashlib.sha1(text.encode("utf-8")).hexdigest()[:12] + ".mp3"
 
 
 def main() -> None:
-    phrases = json.loads((HERE / "phrases.json").read_text(encoding="utf-8"))
+    # sentence -> text to synthesise (same sentence, with pronunciation fixes)
+    phrases: dict[str, str] = json.loads((HERE / "phrases.json").read_text(encoding="utf-8"))
     voice = PiperVoice.load(str(model_path()))
     OUT.mkdir(parents=True, exist_ok=True)
     clips: dict[str, str] = {}
     with tempfile.TemporaryDirectory() as tmp:
-        for i, text in enumerate(phrases, 1):
-            name = clip_name(text)
+        for i, (text, spoken) in enumerate(phrases.items(), 1):
+            name = clip_name(spoken)
             wav = Path(tmp) / "clip.wav"
             with wave.open(str(wav), "wb") as wf:
-                voice.synthesize_wav(text, wf, syn_config=SYNTH)
+                voice.synthesize_wav(spoken, wf, syn_config=SYNTH)
             # trim the silence Piper leaves around the sentence (tight counting rhythm),
             # keep a few ms so that nothing is cut, then encode a small mono mp3
             subprocess.run(
