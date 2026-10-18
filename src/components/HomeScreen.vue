@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { CHARACTERS } from '../data/characters'
+import { CHARACTERS, nextUnlockAt, ownedCharacters, type CharacterId } from '../data/characters'
 import { saveProfile, useProfiles } from '../composables/useProfiles'
 import CharacterSprite from './CharacterSprite.vue'
 import CrabSprite from './CrabSprite.vue'
@@ -12,17 +12,25 @@ const { profiles, current, select, create } = useProfiles()
 /* creating a player happens right here, in two steps: type a name, touch « C'est parti ! » */
 const adding = ref(false)
 const newName = ref('')
+const newCharacter = ref<CharacterId>('dauphin')
 const showForm = computed(() => adding.value || profiles.value.length === 0)
 function addPlayer() {
   if (!newName.value.trim()) return
-  create(newName.value, 'modere')
+  create(newName.value, 'modere', newCharacter.value)
   newName.value = ''
+  newCharacter.value = 'dauphin'
   adding.value = false
 }
 
-const available = computed(() => CHARACTERS.filter((c) => (current.value?.fish ?? 0) >= c.unlockAt))
-function pickCharacter(id: (typeof CHARACTERS)[number]['id']) {
-  if (!current.value) return
+const owned = computed(() => (current.value ? ownedCharacters(current.value.owned, current.value.character, current.value.fish) : []))
+/** fish still to win before the next animal */
+const fishToNext = computed(() => {
+  const next = current.value ? nextUnlockAt(current.value.fish) : null
+  return next === null || !current.value ? null : next - current.value.fish
+})
+const firstLocked = computed(() => CHARACTERS.find((c) => !owned.value.includes(c.id))?.id)
+function pickCharacter(id: CharacterId) {
+  if (!current.value || !owned.value.includes(id)) return
   current.value.character = id
   saveProfile(current.value)
 }
@@ -71,7 +79,7 @@ function stopHold() {
     </div>
 
     <!-- new player -->
-    <form v-if="showForm" class="mt-[4vh] flex w-full max-w-xl flex-col items-center gap-4 rounded-3xl bg-white/15 p-6 text-white" @submit.prevent="addPlayer">
+    <form v-if="showForm" class="mt-[4vh] flex w-full max-w-2xl flex-col items-center gap-4 rounded-3xl bg-white/15 p-6 text-white" @submit.prevent="addPlayer">
       <label for="player-name" class="text-3xl font-bold">Comment t'appelles-tu ?</label>
       <input
         id="player-name"
@@ -83,7 +91,23 @@ function stopHold() {
         autocapitalize="words"
         enterkeyhint="go"
       />
-      <div class="flex flex-wrap justify-center gap-3">
+      <p class="mt-2 text-2xl font-bold">Choisis ton animal</p>
+      <div class="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="animal">
+        <button
+          v-for="c in CHARACTERS"
+          :key="c.id"
+          type="button"
+          role="radio"
+          :aria-checked="newCharacter === c.id"
+          :aria-label="c.name"
+          class="rounded-2xl p-2 transition"
+          :class="newCharacter === c.id ? 'bg-white/35 ring-4 ring-white' : 'bg-white/10 active:bg-white/20'"
+          @click="newCharacter = c.id"
+        >
+          <CharacterSprite :id="c.id" :mood="newCharacter === c.id ? 'happy' : 'neutral'" class="h-16 w-20" />
+        </button>
+      </div>
+      <div class="mt-2 flex flex-wrap justify-center gap-3">
         <button v-if="profiles.length" type="button" class="btn" @click="adding = false; newName = ''">Annuler</button>
         <button type="submit" class="btn btn-primary" :disabled="!newName.trim()" :class="{ 'opacity-50': !newName.trim() }">C'est parti !</button>
       </div>
@@ -92,17 +116,27 @@ function stopHold() {
     <template v-if="current && !showForm">
       <button type="button" class="btn btn-primary mt-[4vh] text-3xl" @click="emit('play')">Jouer</button>
 
-      <div v-if="available.length > 1" class="mt-8 flex flex-wrap justify-center gap-2">
+      <!-- animals: owned ones can be chosen, the others are rewards still to win -->
+      <div class="mt-8 flex flex-wrap justify-center gap-2">
         <button
-          v-for="c in available"
+          v-for="c in CHARACTERS"
           :key="c.id"
           type="button"
-          class="rounded-2xl p-2 transition"
-          :class="current.character === c.id ? 'bg-white/30 ring-4 ring-white' : 'bg-white/10 active:bg-white/20'"
-          :aria-label="c.name"
+          class="relative rounded-2xl p-2 transition"
+          :class="
+            !owned.includes(c.id) ? 'bg-black/15' : current.character === c.id ? 'bg-white/30 ring-4 ring-white' : 'bg-white/10 active:bg-white/20'
+          "
+          :aria-label="owned.includes(c.id) ? c.name : `${c.name} (à gagner)`"
+          :disabled="!owned.includes(c.id)"
           @click="pickCharacter(c.id)"
         >
-          <CharacterSprite :id="c.id" class="h-16 w-20" />
+          <CharacterSprite :id="c.id" class="h-16 w-20" :class="{ 'opacity-30 grayscale': !owned.includes(c.id) }" />
+          <span v-if="!owned.includes(c.id)" class="absolute inset-0 flex flex-col items-center justify-center text-white/90">
+            <svg viewBox="0 0 24 24" class="h-6 w-6"><path d="M7 10V8a5 5 0 0 1 10 0v2h1v11H6V10h1zm2 0h6V8a3 3 0 0 0-6 0v2z" fill="currentColor" /></svg>
+            <span v-if="c.id === firstLocked && fishToNext !== null" class="flex items-center gap-1 text-sm font-bold">
+              {{ fishToNext }} <svg viewBox="0 0 60 36" class="h-3 w-5"><ellipse cx="32" cy="18" rx="24" ry="14" fill="#ffd166" /><path d="M10 18 L0 6 L2 18 L0 30 Z" fill="#ffd166" /></svg>
+            </span>
+          </span>
         </button>
       </div>
 

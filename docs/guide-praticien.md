@@ -10,7 +10,7 @@ Ce guide s'adresse aux logopèdes, orthophonistes, enseignants et parents qui ut
 ## Mise en route
 
 1. Ouvrir le jeu sur une tablette **en mode paysage** (ou sur un ordinateur), avec le son activé et le mode silencieux désactivé. Sur iPad, « Partager › Sur l'écran d'accueil » permet de lancer le jeu en plein écran.
-2. À la première ouverture, le jeu demande « Comment t'appelles-tu ? ». Saisir un prénom ou un pseudonyme, puis toucher **C'est parti !**. Pour un autre enfant, toucher « + Nouveau joueur » sur l'accueil.
+2. À la première ouverture, le jeu demande « Comment t'appelles-tu ? ». Saisir un prénom ou un pseudonyme, laisser l'enfant choisir son animal, puis toucher **C'est parti !**. Pour un autre enfant, toucher « + Nouveau joueur » sur l'accueil.
 3. Toucher **Jouer**.
 
 Par défaut, l'algorithme part d'un niveau *modéré* : il suppose que l'enfant maîtrise le premier tiers de chaque dimension. Pour changer ce point de départ, **maintenir appuyé** le bouton « Espace adulte » en bas à droite de l'accueil (environ une seconde, pour éviter les ouvertures accidentelles par l'enfant). Dans l'onglet Profils, on peut alors créer un profil :
@@ -32,7 +32,7 @@ Les auteurs ont observé une lassitude chez certains enfants après une dizaine 
 1. **Comparer** : toucher le trésor qui contient le plus. Selon le niveau, les quantités sont des pièces, des chiffres, des nombres prononcés ou des petits calculs.
 2. **Observer le retour** : la quantité choisie est montrée en pièces, en chiffre et prononcée.
 3. **Avancer sur la piste**, affichée en haut du même écran : les cases sont numérotées de 1 à 20, et chaque toucher sur son trésor pose une pièce sur la case suivante (l'ordinateur compte). L'enfant peut aussi toucher directement la bonne case d'arrivée. Le déplacement s'affiche comme une opération (« 7 + 4 = 11 », ou « 11 − 2 = 9 » sur une anémone). À partir du niveau 9, il faut éviter les anémones.
-4. **Gagner la course** pour remporter un poisson. Les poissons débloquent de nouveaux personnages.
+4. **Gagner la course** pour remporter un poisson. Les poissons débloquent de nouveaux animaux. Sur l'accueil, ceux qui restent à gagner sont grisés, avec le nombre de poissons manquants.
 
 Le réglage « Déplacement automatique » fait poser les pièces par l'ordinateur. Il accélère le jeu, mais supprime la correspondance terme à terme faite par l'enfant. Mieux vaut le réserver aux enfants qui comptent déjà de façon fiable.
 

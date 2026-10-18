@@ -129,7 +129,7 @@ Les tests (`src/engine/engine.test.ts`) simulent un apprenant à connaissance fi
 | Début du délai | Après la présentation (fin de la voix) | Pour ne pas pénaliser l'écoute des nombres |
 | Côté de l'opération | Tiré au hasard ; l'autre côté si la valeur ne s'écrit pas avec cette opération | Le tableau ne précise pas |
 | Niveau 14 | Une seule opération par essai, + ou − tiré au hasard | Lecture la plus simple de « distinguer addition et soustraction » |
-| Personnages | 6 animaux marins, débloqués à 3, 7, 12, 18 et 25 poissons | Récompenses espacées ; l'aquarium continue de se remplir au-delà |
+| Personnages | 6 animaux marins ; l'enfant choisit le sien à la création du profil, les autres se débloquent à 3, 7, 12, 18 et 25 poissons | Le choix initial favorise l'appropriation ; les suivants restent des récompenses (« débloquer un nouveau personnage ») ; l'aquarium continue de se remplir au-delà |
 | Voix | Synthèse vocale du navigateur (voix locale fr-BE de préférence, sinon fr-FR) ; le comptage du crabe est dit en une seule phrase synchronisée avec les pièces | Pas de fichiers audio ; tout nombre visible peut être entendu ; une phrase par nombre était saccadée et lente |
 | Rythme | Le crabe avance en même temps qu'il compte ; son commentaire se poursuit pendant l'apparition des trésors suivants | Les auteurs ont accéléré le plateau dans la version révisée, la lenteur lassait les enfants |
 | Tablette | Gestes au toucher immédiat, son et voix déverrouillés au premier toucher (exigence d'iOS), mode paysage | Public cible en cabinet et en classe |

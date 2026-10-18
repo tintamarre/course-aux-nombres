@@ -42,6 +42,8 @@ export interface Profile {
   sessions: SessionLog[]
   fish: number
   character: CharacterId
+  /** characters the child can play with (first one chosen at creation, then unlocked with fish) */
+  owned?: CharacterId[]
   race: { player: number; crab: number }
 }
 
@@ -97,7 +99,7 @@ export function storeKnowledge(p: Profile, ks: KnowledgeSpace): void {
 export function useProfiles() {
   const current = computed(() => profiles.value.find((p) => p.id === index.value.current) ?? null)
 
-  function create(name: string, prior: PriorName): Profile {
+  function create(name: string, prior: PriorName, character: CharacterId = 'dauphin'): Profile {
     const p: Profile = {
       id: Math.random().toString(36).slice(2, 10),
       name: name.trim() || 'Joueur',
@@ -108,7 +110,8 @@ export function useProfiles() {
       trials: [],
       sessions: [],
       fish: 0,
-      character: 'dauphin',
+      character,
+      owned: [character],
       race: { player: 0, crab: 0 },
     }
     profiles.value.push(p)

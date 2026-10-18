@@ -3,7 +3,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { generateProblem, type Problem, type Side } from '../engine/problem'
 import { placeHazards } from '../engine/board'
-import { CHARACTERS, type Character } from '../data/characters'
+import { CHARACTERS, allowedCount, ownedCharacters, type Character } from '../data/characters'
 import { flushProfiles, knowledgeOf, saveProfile, storeKnowledge, type Profile, type SessionLog } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
 import { say } from '../composables/useSpeech'
@@ -87,8 +87,10 @@ async function onTurnDone(player: number, crab: number, winner: Lane | null) {
   const { profile } = props
   profile.race = winner ? { player: 0, crab: 0 } : { player, crab }
   if (winner === 'player') {
+    const owned = ownedCharacters(profile.owned, profile.character, profile.fish)
     profile.fish++
-    unlocked.value = CHARACTERS.find((c) => c.unlockAt === profile.fish) ?? null
+    unlocked.value = allowedCount(profile.fish) > owned.length ? (CHARACTERS.find((c) => !owned.includes(c.id)) ?? null) : null
+    profile.owned = unlocked.value ? [...owned, unlocked.value.id] : owned
     saveAll()
     phase.value = 'reward'
     sounds.reward()
