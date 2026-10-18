@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { KnowledgeSpace, PAPER_PARAMS, PRIORS } from './adaptive'
-import { BOARD_LENGTH, HAZARD_PENALTY, MAX_BOARD_LENGTH, boardLength, hazardCount, move, placeHazards } from './board'
+import { BOARD_LENGTH, HAZARD_PENALTY, MAX_BOARD_LENGTH, boardLength, hazardCount, hazardKind, move, placeHazards } from './board'
 import { layoutDots } from './dots'
 import { LEVELS, levelFromDifficulty } from './levels'
 import { chooseLarger, chooseSmaller, deadlineSeconds, generateProblem, makeOperation } from './problem'
@@ -138,6 +138,18 @@ describe('board', () => {
       expect(h).not.toContain(5)
       expect(h).not.toContain(9)
     }
+  })
+  it('keeps traps apart, so going back never lands on another trap', () => {
+    const rng = mulberry32(7)
+    for (let k = 0; k < 100; k++) {
+      const h = placeHazards(rng, [0], MAX_BOARD_LENGTH)
+      expect(h).toHaveLength(hazardCount(MAX_BOARD_LENGTH))
+      for (let i = 1; i < h.length; i++) expect(h[i] - h[i - 1]).toBeGreaterThan(HAZARD_PENALTY)
+    }
+  })
+  it('mixes the kinds of traps along the track', () => {
+    const h = [4, 9, 15, 22, 30]
+    expect(h.map((sq) => hazardKind(h, sq))).toEqual(['anemone', 'urchin', 'jellyfish', 'anemone', 'urchin'])
   })
 })
 

@@ -5,7 +5,7 @@
  */
 import { CHARACTERS } from './characters'
 import { numberWord, operationWords } from './words'
-import { HAZARD_PENALTY, MAX_BOARD_LENGTH } from '../engine/board'
+import { HAZARD_KINDS, HAZARD_PENALTY, MAX_BOARD_LENGTH, type HazardKind } from '../engine/board'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -55,6 +55,13 @@ export function pickVariant(list: readonly string[]): string {
   return choice
 }
 
+/** what is said when a character lands on a trap */
+const HAZARDS: Record<HazardKind, { player: string; crab: string }> = {
+  anemone: { player: 'Aïe, une anémone !', crab: 'Le crabe tombe sur une anémone !' },
+  urchin: { player: 'Aïe, un oursin, ça pique !', crab: 'Le crabe se pique sur un oursin !' },
+  jellyfish: { player: 'Oh non, une méduse !', crab: 'Le crabe touche une méduse !' },
+}
+
 export const phrases = {
   /** a number on its own: counting, presentation of a quantity */
   number: (n: number) => numberWord(n),
@@ -67,8 +74,8 @@ export const phrases = {
   verdictTimeout: () => pickVariant(VERDICTS.timeout),
   operation: (a: number, op: '+' | '-', b: number, result: number) => `${operationWords(a, op, b)}, égale ${numberWord(result)}.`,
   arrived: 'Arrivé !',
-  hazardPlayer: `Aïe, une anémone ! Tu recules de ${numberWord(HAZARD_PENALTY)}.`,
-  hazardCrab: 'Le crabe tombe sur une anémone !',
+  hazardPlayer: (kind: HazardKind) => `${HAZARDS[kind].player} Tu recules de ${numberWord(HAZARD_PENALTY)}.`,
+  hazardCrab: (kind: HazardKind) => HAZARDS[kind].crab,
   comment: (key: keyof typeof COMMENTS) => pickVariant(COMMENTS[key]),
   hintMove: 'Touche les cases une à une pour avancer !',
   readyPrompt: 'Prêt ? Touche le bouton pour commencer !',
@@ -97,6 +104,10 @@ export function allPhrases(): string[] {
     for (let n = 1; n <= 9 && from + n <= MAX_BOARD_LENGTH; n++) add(phrases.operation(from, '+', n, from + n))
   // going back on an anemone (anemones are never on the first two or the last two squares)
   for (let sq = 2; sq <= MAX_BOARD_LENGTH - 2; sq++) add(phrases.operation(sq, '-', HAZARD_PENALTY, sq - HAZARD_PENALTY))
+  for (const kind of HAZARD_KINDS) {
+    add(phrases.hazardPlayer(kind))
+    add(phrases.hazardCrab(kind))
+  }
   for (const c of CHARACTERS) add(phrases.unlock(c.article))
   for (const list of [...Object.values(VERDICTS), ...Object.values(COMMENTS)]) list.forEach(add)
   for (const v of Object.values(phrases)) if (typeof v === 'string') add(v)

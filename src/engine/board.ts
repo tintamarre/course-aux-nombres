@@ -22,7 +22,7 @@ export function boardLength(level: Level): number {
   return level.smallRange ? BOARD_LENGTH : 30
 }
 
-/** anemones on a track: 3 on 20 squares, 5 on 40 */
+/** traps on a track: 3 on 20 squares, 5 on 40 */
 export const hazardCount = (length: number): number => Math.round(length / 8)
 
 export interface Move {
@@ -42,17 +42,28 @@ export function move(from: number, steps: number, hazards: readonly number[], le
   return { from, landing, to: hitHazard ? Math.max(0, landing - HAZARD_PENALTY) : landing, hitHazard, finished }
 }
 
-/** New anemones "appear at random on some board squares", never under a character. */
+/**
+ * Anemones "appear at random on some board squares", never under a character, and never so close
+ * to each other that going back from one lands on (or just by) another.
+ */
 export function placeHazards(rng: Rng, occupied: readonly number[], length = BOARD_LENGTH): number[] {
   const count = hazardCount(length)
   const hazards: number[] = []
   let guard = 0
   while (hazards.length < count && guard++ < 1000) {
     const sq = randomInt(rng, 2, length - 2)
-    if (!hazards.includes(sq) && !occupied.includes(sq)) hazards.push(sq)
+    if (!occupied.includes(sq) && hazards.every((h) => Math.abs(h - sq) > HAZARD_PENALTY)) hazards.push(sq)
   }
   return hazards.sort((a, b) => a - b)
 }
+
+/** The traps all work the same way (go back 2); only their look and sentence change, for fun. */
+export const HAZARD_KINDS = ['anemone', 'urchin', 'jellyfish'] as const
+export type HazardKind = (typeof HAZARD_KINDS)[number]
+
+/** kind of the trap on a square: taken in turn along the track, so every race shows a mix */
+export const hazardKind = (hazards: readonly number[], sq: number): HazardKind =>
+  HAZARD_KINDS[Math.max(0, hazards.indexOf(sq)) % HAZARD_KINDS.length]
 
 export type PositionComment = 'overtaken' | 'crabAhead' | 'crabFarBehind' | 'crabFarAhead'
 

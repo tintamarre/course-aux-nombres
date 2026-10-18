@@ -15,6 +15,7 @@ import { computed } from 'vue'
 import CharacterSprite from './CharacterSprite.vue'
 import CrabSprite from './CrabSprite.vue'
 import CoinIcon from './CoinIcon.vue'
+import { hazardKind } from '../engine/board'
 
 export type Lane = 'player' | 'crab'
 
@@ -121,14 +122,44 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
           <g v-if="placed.includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL - 15}px` }">
             <CoinIcon :x="cx(sq)" :y="SQ_Y + CELL - 15" :r="12" />
           </g>
-          <!-- anemone (shared), drawn over the gold piece so it stays visible while counting -->
+          <!-- trap (shared), drawn over the gold piece so it stays visible while counting -->
           <g v-if="hazards.includes(sq)" :transform="`translate(${cx(sq)} ${SQ_Y + CELL - 8}) scale(0.8)`">
-            <g :class="{ 'anemone-hit': hit === sq }">
-              <g v-for="k in 5" :key="k">
-                <path :d="`M${(k - 3) * 3} 0 Q${(k - 3) * 7} -10 ${(k - 3) * 5} -22`" stroke="#ff7eb3" stroke-width="3.5" stroke-linecap="round" fill="none" />
-                <circle :cx="(k - 3) * 5" cy="-23" r="3" fill="#ffc2dc" />
-              </g>
-              <path d="M-15 4 Q-13 -5 0 -5 Q13 -5 15 4 Z" fill="#d94680" />
+            <g :class="{ 'hazard-hit': hit === sq }" :data-hazard="hazardKind(hazards, sq)">
+              <template v-if="hazardKind(hazards, sq) === 'anemone'">
+                <g v-for="k in 5" :key="k">
+                  <path :d="`M${(k - 3) * 3} 0 Q${(k - 3) * 7} -10 ${(k - 3) * 5} -22`" stroke="#ff7eb3" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                  <circle :cx="(k - 3) * 5" cy="-23" r="3" fill="#ffc2dc" />
+                </g>
+                <path d="M-15 4 Q-13 -5 0 -5 Q13 -5 15 4 Z" fill="#d94680" />
+              </template>
+              <!-- sea urchin: a dark ball with spines -->
+              <template v-else-if="hazardKind(hazards, sq) === 'urchin'">
+                <path
+                  v-for="k in 12"
+                  :key="k"
+                  :d="`M0 -10 L${17 * Math.cos((k * Math.PI) / 6)} ${-10 + 17 * Math.sin((k * Math.PI) / 6)}`"
+                  stroke="#4b2a6e"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                />
+                <circle cx="0" cy="-10" r="10" fill="#6a3d9a" />
+                <circle cx="-3" cy="-13" r="3" fill="#9b6fd0" />
+              </template>
+              <!-- jellyfish: a dome with wavy tentacles -->
+              <template v-else>
+                <path
+                  v-for="k in 4"
+                  :key="k"
+                  :d="`M${(k - 2.5) * 6} -12 q-3 4 0 8 q3 4 0 8`"
+                  stroke="#8fd3ff"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  fill="none"
+                />
+                <path d="M-14 -11 Q-14 -30 0 -30 Q14 -30 14 -11 Q7 -14 0 -11 Q-7 -14 -14 -11 Z" fill="#b48cff" fill-opacity="0.9" />
+                <circle cx="-5" cy="-21" r="2" fill="#2a1d4a" />
+                <circle cx="5" cy="-21" r="2" fill="#2a1d4a" />
+              </template>
             </g>
           </g>
         </g>
@@ -216,7 +247,7 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
   25% { transform: translateX(-5px); }
   75% { transform: translateX(5px); }
 }
-.anemone-hit {
+.hazard-hit {
   animation: pulse 0.5s ease-in-out 2;
 }
 @keyframes pulse {

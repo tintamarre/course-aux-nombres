@@ -23,7 +23,7 @@ let readyPromptGiven = false
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { Problem, Quantity, Side } from '../engine/problem'
 import { BOX, layoutDots } from '../engine/dots'
-import { HAZARD_PENALTY, move, positionComment } from '../engine/board'
+import { hazardKind, move, positionComment } from '../engine/board'
 import { numberWord, operationWords } from '../data/words'
 import { phrases } from '../data/phrases'
 import { countAloud, hush, say, sayNow } from '../composables/useSpeech'
@@ -39,7 +39,7 @@ const props = defineProps<{
   character: string
   player: number
   crab: number
-  /** anemones, shared by both characters */
+  /** traps (anemones, urchins, jellyfish), shared by both characters */
   hazards: number[]
   /** number of squares of this race */
   length: number
@@ -400,8 +400,9 @@ async function finishMove(lane: Lane, m: ReturnType<typeof move>) {
     setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: null })
     hit.value = { lane, square: m.landing }
     sounds.ouch()
-    message.value = lane === 'player' ? `Aïe, une anémone ! Tu recules de ${HAZARD_PENALTY}.` : phrases.hazardCrab
-    await say(lane === 'player' ? phrases.hazardPlayer : phrases.hazardCrab)
+    const kind = hazardKind(props.hazards, m.landing)
+    message.value = lane === 'player' ? phrases.hazardPlayer(kind) : phrases.hazardCrab(kind)
+    await say(message.value)
     await hop(lane, m.to)
     setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: m.to })
     hit.value = null
