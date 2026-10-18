@@ -2,7 +2,7 @@
  * Child profiles, stored locally in the browser only (no server, no personal data sent anywhere).
  * A profile keeps the knowledge matrix K, so the game resumes at the right difficulty.
  */
-import { computed, ref } from 'vue'
+import { computed, markRaw, ref, toRaw } from 'vue'
 import { KnowledgeSpace, PAPER_PARAMS, PRIORS, type PriorName } from '../engine/adaptive'
 import { loadJson, removeKey, saveJson } from './useStorage'
 import type { CharacterId } from '../data/characters'
@@ -60,17 +60,37 @@ const profiles = ref<Profile[]>(
 
 const saveIndex = () => saveJson(INDEX_KEY, index.value)
 
-export function saveProfile(p: Profile): void {
-  if (p.trials.length > MAX_TRIALS) p.trials.splice(0, p.trials.length - MAX_TRIALS)
-  saveJson(`can-profile-${p.id}`, p)
+/**
+ * Saving is deferred and done on the raw object: serialising thousands of trials through Vue's
+ * reactive proxies, synchronously after every answer, made the game stutter on tablets.
+ */
+const pending = new Map<string, Profile>()
+let saveTimer: ReturnType<typeof setTimeout> | undefined
+
+export function flushProfiles(): void {
+  clearTimeout(saveTimer)
+  for (const p of pending.values()) {
+    if (p.trials.length > MAX_TRIALS) p.trials.splice(0, p.trials.length - MAX_TRIALS)
+    saveJson(`can-profile-${p.id}`, p)
+  }
+  pending.clear()
 }
+
+export function saveProfile(p: Profile): void {
+  pending.set(p.id, toRaw(p))
+  clearTimeout(saveTimer)
+  saveTimer = setTimeout(flushProfiles, 600)
+}
+
+if (typeof window !== 'undefined') window.addEventListener('pagehide', flushProfiles)
 
 export function knowledgeOf(p: Profile): KnowledgeSpace {
   return new KnowledgeSpace(PAPER_PARAMS, PRIORS[p.prior], p.K.length ? p.K : undefined, p.history)
 }
 
 export function storeKnowledge(p: Profile, ks: KnowledgeSpace): void {
-  p.K = Array.from(ks.K, (k) => Math.round(k * 1000) / 1000)
+  // markRaw: 8 000 numbers do not need to be reactive
+  p.K = markRaw(Array.from(ks.K, (k) => Math.round(k * 1000) / 1000))
   p.history = [...ks.history]
 }
 
@@ -108,6 +128,7 @@ export function useProfiles() {
     profiles.value = profiles.value.filter((p) => p.id !== id)
     index.value.ids = index.value.ids.filter((x) => x !== id)
     if (index.value.current === id) index.value.current = index.value.ids[0] ?? null
+    pending.delete(id)
     removeKey(`can-profile-${id}`)
     saveIndex()
   }

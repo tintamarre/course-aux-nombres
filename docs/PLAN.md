@@ -17,6 +17,8 @@
 - [x] Son : déverrouillage au premier toucher (iOS), plus de coupures entre phrases, enveloppes sans clics
 - [x] Tablette : gestes au toucher immédiat, cibles ≥ 48 px, pas de survol collant ni d'appui long, invitation à tourner en mode portrait
 - [x] Création du joueur directement sur l'accueil (« Comment t'appelles-tu ? »)
+- [x] Cases numérotées et déplacements affichés comme opérations (« 7 + 4 = 11 », « 11 − 2 = 9 »)
+- [x] Son sans grésillement (sons pré-calculés, sortie audio maintenue éveillée), tours plus rapides, enregistrement différé du profil
 
 ## Idées pour la suite
 

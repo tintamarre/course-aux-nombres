@@ -15,7 +15,7 @@ export interface Settings {
 const KEY = 'can-settings'
 
 const settings = reactive<Settings>(
-  loadJson<Settings>(KEY, { voice: true, voiceRate: 0.95, sounds: true, autoMove: false, sessionMinutes: 20 }),
+  loadJson<Settings>(KEY, { voice: true, voiceRate: 1, sounds: true, autoMove: false, sessionMinutes: 20 }),
 )
 
 watch(settings, () => saveJson(KEY, settings), { deep: true })

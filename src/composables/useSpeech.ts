@@ -73,7 +73,7 @@ function speak(u: SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charInd
 /** Speak a sentence and resolve when it is over (or after a short delay when speech is off). */
 export function say(text: string, rate = 1): Promise<void> {
   if (!settings.voice || !speechAvailable()) return wait(Math.min(1200, 200 + text.length * 35))
-  return speak(utterance(text, rate), 2500 + text.length * 110)
+  return speak(utterance(text, rate), 1200 + (text.length * 90) / (settings.voiceRate * rate))
 }
 
 /** Fire-and-forget, used for counting taps: does not wait, does not cancel what is being said. */
@@ -113,7 +113,7 @@ export async function countAloud(words: string[], onTick: (k: number) => void, r
       if (!boundaries) tick(++k)
     }, step)
   }
-  await speak(u, 1500 + words.length * 900, (charIndex) => {
+  await speak(u, 1200 + words.length * 700, (charIndex) => {
     boundaries = true
     tick(starts.filter((s) => s <= charIndex).length - 1)
   })

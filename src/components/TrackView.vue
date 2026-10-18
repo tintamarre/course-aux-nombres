@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * The race track: one horizontal lane per character (child on top, crab below), always visible
- * above the treasures. Gold pieces placed on the squares carry their count (1, 2, 3…).
+ * above the treasures. Squares are numbered; gold pieces are placed under the number.
  */
 import { BOARD_LENGTH } from '../engine/board'
 import CharacterSprite from './CharacterSprite.vue'
@@ -59,13 +59,15 @@ const squares = Array.from({ length: BOARD_LENGTH }, (_, k) => k + 1)
           stroke="#c9a96b"
           stroke-width="2"
         />
+        <!-- square number -->
+        <text :x="cx(sq)" :y="LANE_H - CELL + 13" text-anchor="middle" class="square-number">{{ sq }}</text>
         <!-- finish flag -->
         <g v-if="sq === BOARD_LENGTH" :transform="`translate(${cx(sq) + 8} ${LANE_H - CELL - 34})`">
           <path d="M0 0 V34" stroke="#5b4a2f" stroke-width="3" />
           <path d="M2 2 H20 L15 8 L20 14 H2 Z" fill="#ef476f" />
         </g>
         <!-- anemone -->
-        <g v-if="hazards[lane].includes(sq)" :transform="`translate(${cx(sq)} ${LANE_H - 14})`">
+        <g v-if="hazards[lane].includes(sq)" :transform="`translate(${cx(sq)} ${LANE_H - 10}) scale(0.75)`">
           <g :class="{ 'anemone-hit': hit?.lane === lane && hit.square === sq }">
             <g v-for="k in 5" :key="k">
               <path :d="`M${(k - 3) * 3} 0 Q${(k - 3) * 7} -10 ${(k - 3) * 5} -22`" stroke="#ff7eb3" stroke-width="3.5" stroke-linecap="round" fill="none" />
@@ -74,10 +76,9 @@ const squares = Array.from({ length: BOARD_LENGTH }, (_, k) => k + 1)
             <path d="M-15 4 Q-13 -5 0 -5 Q13 -5 15 4 Z" fill="#d94680" />
           </g>
         </g>
-        <!-- gold piece with its count -->
-        <g v-if="placed[lane].includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${LANE_H - CELL / 2 - 6}px` }">
-          <CoinIcon :x="cx(sq)" :y="LANE_H - CELL / 2 - 6" :r="17" />
-          <text :x="cx(sq)" :y="LANE_H - CELL / 2" text-anchor="middle" class="coin-count">{{ placed[lane].indexOf(sq) + 1 }}</text>
+        <!-- gold piece, under the square number -->
+        <g v-if="placed[lane].includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${LANE_H - 19}px` }">
+          <CoinIcon :x="cx(sq)" :y="LANE_H - 19" :r="11" />
         </g>
       </g>
       <!-- start -->
@@ -102,10 +103,10 @@ const squares = Array.from({ length: BOARD_LENGTH }, (_, k) => k + 1)
   transition: transform 0.11s ease-out;
   pointer-events: none;
 }
-.coin-count {
+.square-number {
   font-weight: 800;
-  font-size: 17px;
-  fill: #6b4500;
+  font-size: 15px;
+  fill: #7a5a24;
   pointer-events: none;
 }
 .coin-pop {

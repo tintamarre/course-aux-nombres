@@ -4,7 +4,7 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 import { generateProblem, type Problem, type Side } from '../engine/problem'
 import { placeHazards } from '../engine/board'
 import { CHARACTERS, type Character } from '../data/characters'
-import { knowledgeOf, saveProfile, storeKnowledge, type Profile, type SessionLog } from '../composables/useProfiles'
+import { flushProfiles, knowledgeOf, saveProfile, storeKnowledge, type Profile, type SessionLog } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
 import { say } from '../composables/useSpeech'
 import { sounds } from '../composables/useSounds'
@@ -51,7 +51,10 @@ function saveAll() {
   storeKnowledge(props.profile, ks)
   saveProfile(props.profile)
 }
-onBeforeUnmount(saveAll)
+onBeforeUnmount(() => {
+  saveAll()
+  flushProfiles()
+})
 
 const label = (s: Side) => {
   const q = turn.value.problem[s]

@@ -50,6 +50,15 @@ const choice = ref<Side | null>(null)
 const timedOut = ref(false)
 const opStep = ref(0)
 const message = ref('')
+/** each move shown as an operation on the numbered track: 7 + 4 = 11, 11 − 2 = 9 */
+interface Operation {
+  a: number
+  sign: '+' | '−'
+  b: number
+  result: number | null
+}
+const operations = ref<Record<Lane, Operation | null>>({ player: null, crab: null })
+const setOperation = (lane: Lane, op: Operation) => (operations.value[lane] = op)
 
 const playerPos = ref(props.player)
 const crabPos = ref(props.crab)
@@ -114,7 +123,6 @@ onBeforeUnmount(() => {
   alive = false
   clearTimeout(deadlineTimer)
   clearTimeout(hintTimer)
-  hush()
 })
 
 /* ---------- 1–2. choice and feedback ---------- */
@@ -137,15 +145,16 @@ async function choose(s: Side | null) {
   const spoken = say(`${numberWord(q(choice.value).value)} ! ${message.value}`)
   if (hasOp) {
     // concretise the operation: first operand, then pieces join or leave, then the result
-    await wait(250)
+    await wait(200)
     opStep.value = 1
-    await wait(900)
+    await wait(700)
     opStep.value = 2
-    await wait(500)
+    await wait(400)
     opStep.value = 3
   }
   if (!alive) return
   phase.value = 'move'
+  setOperation('player', { a: props.player, sign: '+', b: piecesFor('player'), result: null })
   if (settings.autoMove) {
     await spoken
     if (alive) await placeAll()
@@ -189,11 +198,10 @@ function tapTreasure(s: Side) {
   if (piecesLeft('player') === 0) void moveCharacter('player')
 }
 
+/** Arrival-square shortcut and automatic mode: the character walks as the numbers are counted. */
 async function placeAll() {
   busy.value = true
-  const start = placedCount.value.player
-  await countAloud(NUMBER_WORDS.slice(start + 1, piecesFor('player') + 1), () => placeOne('player'))
-  if (alive) await moveCharacter('player')
+  await walkCounting('player')
 }
 
 function tapSquare(sq: number) {
@@ -205,7 +213,7 @@ function tapSquare(sq: number) {
   }
 }
 
-/* ---------- moving along the pieces ---------- */
+/* ---------- moving ---------- */
 async function hop(lane: Lane, to: number) {
   const pos = lane === 'player' ? playerPos : crabPos
   const step = to > pos.value ? 1 : -1
@@ -213,52 +221,74 @@ async function hop(lane: Lane, to: number) {
     pos.value += step
     placed.value[lane] = placed.value[lane].filter((x) => x !== pos.value)
     sounds.hop()
-    await wait(110)
+    await wait(90)
   }
 }
 
+/** After the child placed the pieces one by one: the character hops along them. */
 async function moveCharacter(lane: Lane) {
   busy.value = true
   const pos = lane === 'player' ? playerPos : crabPos
-  await wait(150)
   const m = move(pos.value, q(sideOf(lane)).value, props.hazards[lane])
+  setOperation(lane, { a: m.from, sign: '+', b: m.landing - m.from, result: null })
   await hop(lane, m.landing)
+  await finishMove(lane, m)
+}
+
+/** Count aloud while stepping forward, one square per number (crab, shortcut, automatic mode). */
+async function walkCounting(lane: Lane) {
+  busy.value = true
+  const pos = lane === 'player' ? playerPos : crabPos
+  const from = pos.value
+  const m = move(from, q(sideOf(lane)).value, props.hazards[lane])
+  setOperation(lane, { a: from, sign: '+', b: m.landing - from, result: null })
   placed.value[lane] = []
+  await countAloud(NUMBER_WORDS.slice(1, m.landing - from + 1), (k) => {
+    pos.value = from + k
+    placedCount.value[lane] = k
+    sounds.coin(k)
+  }, lane === 'crab' ? 1.4 : 1.25)
+  await finishMove(lane, m)
+}
+
+async function finishMove(lane: Lane, m: ReturnType<typeof move>) {
+  placed.value[lane] = []
+  setOperation(lane, { a: m.from, sign: '+', b: m.landing - m.from, result: m.landing })
   if (m.hitHazard && alive) {
+    await wait(500)
+    setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: null })
     hit.value = { lane, square: m.landing }
     sounds.ouch()
     message.value = lane === 'player' ? `Aïe, une anémone ! Tu recules de ${HAZARD_PENALTY}.` : `Le crabe tombe sur une anémone !`
     await say(message.value)
     await hop(lane, m.to)
+    setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: m.to })
     hit.value = null
   }
   if (!alive) return
   if (m.finished) {
     phase.value = 'end'
-    await wait(300)
+    await wait(200)
     emit('done', playerPos.value, crabPos.value, lane)
     return
   }
   if (lane === 'player') await crabTurn()
-  else await endTurn()
+  else endTurn()
 }
 
 /* ---------- 4. the crab ---------- */
 async function crabTurn() {
   phase.value = 'crab'
   message.value = ''
-  await wait(250)
-  await countAloud(NUMBER_WORDS.slice(1, piecesFor('crab') + 1), () => placeOne('crab'), 1.35)
-  if (alive) await moveCharacter('crab')
+  await walkCounting('crab')
 }
 
-async function endTurn() {
+/** The crab's remark is not awaited: it is still heard while the next treasures appear. */
+function endTurn() {
   phase.value = 'end'
   const comment = positionComment(props.player, props.crab, playerPos.value, crabPos.value)
-  message.value = comment ?? ''
-  if (comment) await say(comment)
-  else await wait(250)
-  if (alive) emit('done', playerPos.value, crabPos.value, null)
+  if (comment) void say(comment)
+  setTimeout(() => alive && emit('done', playerPos.value, crabPos.value, null), 250)
 }
 </script>
 
@@ -280,9 +310,15 @@ async function endTurn() {
       />
     </div>
 
-    <p class="h-[5.5vh] shrink-0 text-center text-[clamp(1rem,3vh,1.6rem)] leading-[5.5vh] font-bold text-white drop-shadow" aria-live="polite">
-      {{ message }}
-    </p>
+    <div class="flex h-[6vh] shrink-0 items-center justify-center gap-4 text-[clamp(1rem,3vh,1.6rem)] font-bold text-white" aria-live="polite">
+      <template v-for="lane in (['player', 'crab'] as const)" :key="lane">
+        <span v-if="operations[lane]" class="op-chip" :class="lane === 'player' ? 'op-player' : 'op-crab'">
+          {{ operations[lane]!.a }} {{ operations[lane]!.sign }} {{ operations[lane]!.b }} =
+          <span :class="{ 'opacity-0': operations[lane]!.result === null }">{{ operations[lane]!.result ?? '?' }}</span>
+        </span>
+      </template>
+      <span class="drop-shadow">{{ message }}</span>
+    </div>
 
     <!-- the two treasures, with the key and the crab in between when there is a deadline -->
     <div class="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-[1fr_auto_1fr] gap-[2vw] px-[3vw] pb-[3vh]">
@@ -320,7 +356,7 @@ async function endTurn() {
         >
         <template v-if="phase === 'choose'">
           <div v-if="q(s).operation" class="number text-[13vh] leading-none text-[#12263a]">
-            {{ q(s).operation!.a }}<span class="mx-[0.15em] text-[0.8em]">{{ q(s).operation!.op === '+' ? '+' : '−' }}</span>{{ q(s).operation!.b }}
+            {{ q(s).operation!.a }}<span class="mx-[0.15em]">{{ q(s).operation!.op === '+' ? '+' : '−' }}</span>{{ q(s).operation!.b }}
           </div>
           <template v-else>
             <div v-if="lvl.digits" class="number text-[11vh] leading-none text-[#12263a]">{{ q(s).value }}</div>
@@ -371,6 +407,20 @@ async function endTurn() {
 }
 .treasure-other {
   opacity: 0.8;
+}
+.op-chip {
+  border-radius: 9999px;
+  padding: 0 1rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+.op-player {
+  background: #ffffff;
+  color: #0b3954;
+}
+.op-crab {
+  background: #e4572e;
+  color: #fff;
 }
 .owner {
   position: absolute;

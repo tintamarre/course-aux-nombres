@@ -32,9 +32,10 @@ L'original enchaîne deux écrans (comparaison, puis plateau). Ici, les deux son
 
 ### Déplacement sur la piste
 
-- La piste est horizontale, avec un couloir de 20 cases par personnage : l'enfant en haut, le crabe en bas.
-- L'enfant avance d'autant de cases qu'il a de pièces. Chaque toucher sur son trésor fait passer une pièce sur la case suivante, et l'ordinateur prononce le nombre. Cette correspondance terme à terme est rendue visible par le numéro (1, 2, 3…) inscrit sur chaque pièce posée. L'enfant peut aussi toucher directement la case d'arrivée : les pièces se posent alors toutes en comptant. Une case erronée tremble, sans autre pénalité.
-- Le personnage avance, puis le crabe fait de même avec les pièces de son trésor (comptage à voix haute).
+- La piste est horizontale, avec un couloir de 20 cases **numérotées** par personnage : l'enfant en haut, le crabe en bas.
+- Chaque déplacement est affiché comme une opération sur la piste numérotée : « 7 + 4 = 11 » pour avancer, « 11 − 2 = 9 » pour reculer sur une anémone. Le résultat apparaît à l'arrivée. L'opération de l'enfant (étiquette blanche) et celle du crabe (étiquette rouge) restent visibles pendant le tour. C'est un ajout à l'original : il relie le déplacement à l'addition et à la soustraction.
+- L'enfant avance d'autant de cases qu'il a de pièces. Chaque toucher sur son trésor fait passer une pièce sur la case suivante, et l'ordinateur prononce le nombre. La pièce se pose sous le numéro de la case. L'enfant peut aussi toucher directement la case d'arrivée : son personnage avance alors case par case pendant que l'ordinateur compte. Une case erronée tremble, sans autre pénalité.
+- Le personnage avance, puis le crabe avance case par case pendant que l'ordinateur compte ses pièces à voix haute, une phrase pour tout le compte.
 - Le crabe commente les dépassements et les grands écarts : « Oh non ! Tu m'as dépassé ! », « Je suis loin derrière ! »…
 - À partir du niveau 9, des anémones apparaissent au hasard dans les couloirs. Elles sont visibles dès la présentation des trésors. Tomber dessus fait reculer, ce qui oblige à anticiper la case exacte d'arrivée (« attention portée à la quantité exacte »).
 - Le premier arrivé gagne la course. Si c'est l'enfant, il reçoit un poisson pour son aquarium. Les poissons débloquent de nouveaux personnages, qui changent l'apparence mais jamais la tâche.
@@ -130,6 +131,7 @@ Les tests (`src/engine/engine.test.ts`) simulent un apprenant à connaissance fi
 | Niveau 14 | Une seule opération par essai, + ou − tiré au hasard | Lecture la plus simple de « distinguer addition et soustraction » |
 | Personnages | 6 animaux marins, débloqués à 3, 7, 12, 18 et 25 poissons | Récompenses espacées ; l'aquarium continue de se remplir au-delà |
 | Voix | Synthèse vocale du navigateur (voix locale fr-BE de préférence, sinon fr-FR) ; le comptage du crabe est dit en une seule phrase synchronisée avec les pièces | Pas de fichiers audio ; tout nombre visible peut être entendu ; une phrase par nombre était saccadée et lente |
+| Rythme | Le crabe avance en même temps qu'il compte ; son commentaire se poursuit pendant l'apparition des trésors suivants | Les auteurs ont accéléré le plateau dans la version révisée, la lenteur lassait les enfants |
 | Tablette | Gestes au toucher immédiat, son et voix déverrouillés au premier toucher (exigence d'iOS), mode paysage | Public cible en cabinet et en classe |
 | Durée de séance | Réglable, 20 min par défaut (30 min dans l'étude) | La séance se clôt à la fin du tour en cours |
 

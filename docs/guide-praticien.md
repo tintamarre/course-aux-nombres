@@ -31,7 +31,7 @@ Les auteurs ont observé une lassitude chez certains enfants après une dizaine 
 
 1. **Comparer** : toucher le trésor qui contient le plus. Selon le niveau, les quantités sont des pièces, des chiffres, des nombres prononcés ou des petits calculs.
 2. **Observer le retour** : la quantité choisie est montrée en pièces, en chiffre et prononcée.
-3. **Avancer sur la piste**, affichée en haut du même écran : chaque toucher sur son trésor pose une pièce numérotée sur la case suivante (l'ordinateur compte), ou l'enfant touche directement la bonne case d'arrivée. À partir du niveau 9, il faut éviter les anémones.
+3. **Avancer sur la piste**, affichée en haut du même écran : les cases sont numérotées de 1 à 20, et chaque toucher sur son trésor pose une pièce sur la case suivante (l'ordinateur compte). L'enfant peut aussi toucher directement la bonne case d'arrivée. Le déplacement s'affiche comme une opération (« 7 + 4 = 11 », ou « 11 − 2 = 9 » sur une anémone). À partir du niveau 9, il faut éviter les anémones.
 4. **Gagner la course** pour remporter un poisson. Les poissons débloquent de nouveaux personnages.
 
 Le réglage « Déplacement automatique » fait poser les pièces par l'ordinateur. Il accélère le jeu, mais supprime la correspondance terme à terme faite par l'enfant. Mieux vaut le réserver aux enfants qui comptent déjà de façon fiable.
