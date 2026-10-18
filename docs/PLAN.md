@@ -10,6 +10,14 @@
 - [x] Documentation : méthodologie, guide du praticien
 - [x] Déploiement GitHub Pages
 
+## Version 0.2
+
+- [x] Un seul écran : piste horizontale (un couloir de 20 cases par personnage) au-dessus des trésors, pièces numérotées posées directement depuis le trésor
+- [x] Rythme : verdict en une phrase, comptage du crabe en un seul énoncé synchronisé, attentes raccourcies
+- [x] Son : déverrouillage au premier toucher (iOS), plus de coupures entre phrases, enveloppes sans clics
+- [x] Tablette : gestes au toucher immédiat, cibles ≥ 48 px, pas de survol collant ni d'appui long, invitation à tourner en mode portrait
+- [x] Création du joueur directement sur l'accueil (« Comment t'appelles-tu ? »)
+
 ## Idées pour la suite
 
 - Second « monde » graphique (les auteurs en ont ajouté un dans la version révisée pour la variété), par exemple l'espace ou la jungle, avec la même logique

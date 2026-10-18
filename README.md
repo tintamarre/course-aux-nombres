@@ -38,10 +38,10 @@ src/
     levels.ts      les 14 niveaux de complexité (tableau 1 de l'article)
     problem.ts     difficulté → problème (distance, délai, opérations)
     dots.ts        collections de pièces contrôlées en densité / luminance
-    board.ts       plateau, anémones, commentaires
+    board.ts       piste, anémones, commentaires
     engine.test.ts
   composables/     profils (localStorage), réglages, voix, sons
-  components/      écrans (accueil, comparaison, plateau, espace adulte) et sprites SVG
+  components/      écrans (accueil, tour de jeu avec piste et trésors, espace adulte) et sprites SVG
   data/            personnages, mots-nombres
 docs/              documentation métier
 ```
@@ -49,6 +49,14 @@ docs/              documentation métier
 ## Données
 
 Tout reste dans le `localStorage` du navigateur : profils, matrice de connaissances, historique des essais (5 000 au maximum par profil). Rien n'est envoyé à un serveur.
+
+## Tablette
+
+Le jeu est pensé pour une tablette en paysage : gestes au toucher immédiat (`pointerdown`), cibles d'au moins 48 px, pas de zoom au double toucher, et son et voix déverrouillés au premier toucher (exigence d'iOS). La voix dépend des voix françaises installées sur l'appareil.
+
+## Licence
+
+[MIT](LICENSE). L'article source est publié sous licence CC BY 2.0.
 
 ## Déploiement
 

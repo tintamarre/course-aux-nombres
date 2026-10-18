@@ -9,13 +9,15 @@ Ce guide s'adresse aux logopèdes, orthophonistes, enseignants et parents qui ut
 
 ## Mise en route
 
-1. Ouvrir le jeu sur une tablette (de préférence en mode paysage) ou sur un ordinateur, avec le son activé.
-2. Sur l'accueil, **maintenir appuyé** le bouton « Espace adulte » en bas à droite (environ une seconde, pour éviter les ouvertures accidentelles par l'enfant).
-3. Onglet **Profils** : saisir un prénom ou un pseudonyme et choisir le point de départ :
-   - *Modéré* (recommandé) : l'algorithme suppose que l'enfant maîtrise le premier tiers de chaque dimension ;
-   - *Débutant* : pour un jeune enfant ou des difficultés importantes ;
-   - *Aucun* : comportement de la version 2006, où tout part du hasard (plus long à calibrer).
-4. Revenir au jeu et appuyer sur **Jouer**.
+1. Ouvrir le jeu sur une tablette **en mode paysage** (ou sur un ordinateur), avec le son activé et le mode silencieux désactivé. Sur iPad, « Partager › Sur l'écran d'accueil » permet de lancer le jeu en plein écran.
+2. À la première ouverture, le jeu demande « Comment t'appelles-tu ? ». Saisir un prénom ou un pseudonyme, puis toucher **C'est parti !**. Pour un autre enfant, toucher « + Nouveau joueur » sur l'accueil.
+3. Toucher **Jouer**.
+
+Par défaut, l'algorithme part d'un niveau *modéré* : il suppose que l'enfant maîtrise le premier tiers de chaque dimension. Pour changer ce point de départ, **maintenir appuyé** le bouton « Espace adulte » en bas à droite de l'accueil (environ une seconde, pour éviter les ouvertures accidentelles par l'enfant). Dans l'onglet Profils, on peut alors créer un profil :
+- *Débutant* : pour un jeune enfant ou des difficultés importantes ;
+- *Aucun* : comportement de la version 2006, où tout part du hasard (plus long à calibrer).
+
+Dans l'onglet Suivi, « Réinitialiser l'algorithme » repart du point de départ du profil.
 
 Les données restent **dans le navigateur de l'appareil** : rien n'est envoyé sur internet. Effacer les données du navigateur efface donc les profils. Pensez à exporter le suivi en CSV si vous souhaitez le conserver.
 
@@ -29,7 +31,7 @@ Les auteurs ont observé une lassitude chez certains enfants après une dizaine 
 
 1. **Comparer** : toucher le trésor qui contient le plus. Selon le niveau, les quantités sont des pièces, des chiffres, des nombres prononcés ou des petits calculs.
 2. **Observer le retour** : la quantité choisie est montrée en pièces, en chiffre et prononcée.
-3. **Avancer sur le plateau** : poser ses pièces une à une sur les cases (l'ordinateur compte), ou toucher directement la bonne case d'arrivée. À partir du niveau 9, il faut éviter les anémones.
+3. **Avancer sur la piste**, affichée en haut du même écran : chaque toucher sur son trésor pose une pièce numérotée sur la case suivante (l'ordinateur compte), ou l'enfant touche directement la bonne case d'arrivée. À partir du niveau 9, il faut éviter les anémones.
 4. **Gagner la course** pour remporter un poisson. Les poissons débloquent de nouveaux personnages.
 
 Le réglage « Déplacement automatique » fait poser les pièces par l'ordinateur. Il accélère le jeu, mais supprime la correspondance terme à terme faite par l'enfant. Mieux vaut le réserver aux enfants qui comptent déjà de façon fiable.

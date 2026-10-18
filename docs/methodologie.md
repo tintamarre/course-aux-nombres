@@ -21,19 +21,22 @@ Le lien nombre–espace est assuré par le plateau, où l'enfant avance d'autant
 
 ## 2. Déroulement d'un tour
 
-### Écran de comparaison
+L'original enchaîne deux écrans (comparaison, puis plateau). Ici, les deux sont réunis sur **un seul écran**, plus simple à suivre pour un jeune enfant sur tablette : la piste occupe le haut de l'écran, les deux trésors le bas. La tâche et son déroulement restent identiques.
 
-- Deux trésors sont présentés, à gauche et à droite. L'enfant (le dauphin) touche celui qui contient le plus de pièces.
-- Quand la dimension « vitesse » l'impose, le crabe part vers la clé dès la fin de la présentation. S'il l'atteint avant la réponse, il prend le plus grand trésor : l'essai est compté comme un échec et l'enfant reçoit le plus petit trésor.
+### Comparaison
+
+- Deux trésors sont présentés, à gauche et à droite. L'enfant touche celui qui contient le plus de pièces.
+- Quand la dimension « vitesse » l'impose, une clé et un crabe apparaissent entre les deux trésors, et le crabe monte vers la clé dès la fin de la présentation. S'il l'atteint avant la réponse, il prend le plus grand trésor : l'essai est compté comme un échec et l'enfant reçoit le plus petit. Sans délai, ni clé ni crabe ne s'affichent.
 - Le format avant le choix dépend du niveau de complexité (tableau 1 ci-dessous). Au format verbal, chaque nombre est prononcé pendant que le trésor correspondant est entouré, à gauche puis à droite.
-- **Après le choix**, chaque trésor est montré dans les trois formats : pièces rangées par lignes de cinq, chiffre et phrase prononcée (« Tu as choisi cinq. »). Suit le verdict : « Tu as le plus ! » ou « Le crabe a le plus ! ». Pour une opération, on voit d'abord le premier terme, puis les pièces qui arrivent (addition) ou qui s'en vont (soustraction), puis le résultat.
+- **Après le choix**, chaque trésor est montré dans les trois formats : pièces rangées par lignes de cinq, chiffre et nombre prononcé, dans une seule phrase avec le verdict (« Cinq ! Tu as le plus ! »). Chaque trésor porte l'étiquette « à toi » ou « au crabe ». Pour une opération, on voit d'abord le premier terme, puis les pièces qui arrivent (addition) ou qui s'en vont (soustraction), puis le résultat.
 
-### Écran du plateau
+### Déplacement sur la piste
 
-- L'enfant avance d'autant de cases qu'il a de pièces. Il les pose une à une sur les cases, en correspondance terme à terme, et l'ordinateur compte à voix haute. Il peut aussi toucher directement la case d'arrivée, et les pièces se posent alors toutes en comptant. Une case erronée tremble, sans autre pénalité.
-- Le personnage avance, puis le crabe fait de même avec ses pièces (comptage à voix haute).
-- Le crabe commente les positions : « Je suis loin derrière ! », « Oh non ! Tu m'as dépassé ! »…
-- À partir du niveau 9, des anémones apparaissent au hasard sur le plateau. Tomber dessus fait reculer, ce qui oblige à anticiper la case exacte d'arrivée (« attention portée à la quantité exacte »).
+- La piste est horizontale, avec un couloir de 20 cases par personnage : l'enfant en haut, le crabe en bas.
+- L'enfant avance d'autant de cases qu'il a de pièces. Chaque toucher sur son trésor fait passer une pièce sur la case suivante, et l'ordinateur prononce le nombre. Cette correspondance terme à terme est rendue visible par le numéro (1, 2, 3…) inscrit sur chaque pièce posée. L'enfant peut aussi toucher directement la case d'arrivée : les pièces se posent alors toutes en comptant. Une case erronée tremble, sans autre pénalité.
+- Le personnage avance, puis le crabe fait de même avec les pièces de son trésor (comptage à voix haute).
+- Le crabe commente les dépassements et les grands écarts : « Oh non ! Tu m'as dépassé ! », « Je suis loin derrière ! »…
+- À partir du niveau 9, des anémones apparaissent au hasard dans les couloirs. Elles sont visibles dès la présentation des trésors. Tomber dessus fait reculer, ce qui oblige à anticiper la case exacte d'arrivée (« attention portée à la quantité exacte »).
 - Le premier arrivé gagne la course. Si c'est l'enfant, il reçoit un poisson pour son aquarium. Les poissons débloquent de nouveaux personnages, qui changent l'apparence mais jamais la tâche.
 
 ## 3. Les trois dimensions de difficulté
@@ -118,15 +121,16 @@ Les tests (`src/engine/engine.test.ts`) simulent un apprenant à connaissance fi
 
 | Élément | Choix | Raison |
 |---|---|---|
-| Longueur du plateau | 30 cases en serpent (3 × 10) | ≈ 6 à 8 tours par course : la course reste courte, les auteurs ayant observé que la lenteur du plateau lassait |
-| Anémones | 3 par tour, replacées au hasard, jamais sous un personnage | « apparaissent au hasard sur certaines cases » |
-| Recul sur une anémone | 3 cases | Assez pour compter, sans décourager |
+| Piste | Horizontale, un couloir de 20 cases par personnage, sur le même écran que les trésors | Lisible d'un coup d'œil sur tablette ; cases d'au moins 48 px au toucher ; ≈ 4 à 6 tours par course, les auteurs ayant observé que la lenteur du plateau lassait |
+| Anémones | 2 par couloir et par tour, replacées au hasard, jamais sous un personnage | « apparaissent au hasard sur certaines cases » |
+| Recul sur une anémone | 2 cases | Assez pour compter, sans décourager sur une piste courte |
 | Arrivée | Il suffit d'atteindre ou de dépasser la dernière case | Évite les tours bloqués |
 | Début du délai | Après la présentation (fin de la voix) | Pour ne pas pénaliser l'écoute des nombres |
 | Côté de l'opération | Tiré au hasard ; l'autre côté si la valeur ne s'écrit pas avec cette opération | Le tableau ne précise pas |
 | Niveau 14 | Une seule opération par essai, + ou − tiré au hasard | Lecture la plus simple de « distinguer addition et soustraction » |
 | Personnages | 6 animaux marins, débloqués à 3, 7, 12, 18 et 25 poissons | Récompenses espacées ; l'aquarium continue de se remplir au-delà |
-| Voix | Synthèse vocale du navigateur (fr-BE de préférence, sinon fr-FR) | Pas de fichiers audio ; tout nombre visible peut être entendu |
+| Voix | Synthèse vocale du navigateur (voix locale fr-BE de préférence, sinon fr-FR) ; le comptage du crabe est dit en une seule phrase synchronisée avec les pièces | Pas de fichiers audio ; tout nombre visible peut être entendu ; une phrase par nombre était saccadée et lente |
+| Tablette | Gestes au toucher immédiat, son et voix déverrouillés au premier toucher (exigence d'iOS), mode paysage | Public cible en cabinet et en classe |
 | Durée de séance | Réglable, 20 min par défaut (30 min dans l'étude) | La séance se clôt à la fin du tour en cours |
 
 ## 6. Limiter les distracteurs
@@ -134,7 +138,8 @@ Les tests (`src/engine/engine.test.ts`) simulent un apprenant à connaissance fi
 À la demande, et dans l'esprit de l'outil (public avec troubles attentionnels fréquents) :
 
 - le fond marin est **statique** : rien ne bouge derrière la tâche ;
-- pendant la comparaison, l'écran ne contient que les deux trésors, le personnage, la clé et le crabe, sans score, minuterie chiffrée ni décoration animée ;
+- l'écran de jeu ne contient que la piste et les deux trésors, sans score, minuterie chiffrée ni décoration animée ; la clé et le crabe minuteur n'apparaissent que lorsqu'il y a un délai ;
+- les seuls mouvements qui attendent l'enfant ont une fonction : la pièce suivante rebondit doucement pour montrer qu'il faut la toucher ;
 - les sons sont brefs et doux, et peuvent être coupés ;
 - les animations servent la tâche (le crabe matérialise le délai, les pièces qui arrivent ou partent concrétisent l'opération) ;
 - l'aquarium et le choix du personnage ne sont visibles qu'à l'accueil et après une victoire ;
