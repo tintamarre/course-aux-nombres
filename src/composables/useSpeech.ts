@@ -19,10 +19,20 @@ const live = new Set<SpeechSynthesisUtterance>()
 export const speechAvailable = (): boolean => typeof window !== 'undefined' && 'speechSynthesis' in window
 
 /** The voice chosen in the adult space if it exists on this device, otherwise the best French one. */
+/** voices that failed on this device (error, or never started): never chosen again in this visit */
+const badVoices = new Set<string>()
+
 export function pickVoice(): void {
-  const all = speechSynthesis.getVoices()
+  const all = speechSynthesis.getVoices().filter((v) => !badVoices.has(v.voiceURI))
   frenchVoices.value = all.filter(isFrench).sort((a, b) => voiceScore(b) - voiceScore(a))
   voice = frenchVoices.value.find((v) => v.voiceURI === settings.voiceURI) ?? bestVoice(all)
+}
+
+function markBad(v: SpeechSynthesisVoice | null): void {
+  if (!v) return
+  console.warn(`[voix] « ${v.name} » ne fonctionne pas ici, autre voix choisie`)
+  badVoices.add(v.voiceURI)
+  pickVoice()
 }
 
 export const currentVoiceName = (): string => voice?.name ?? ''
@@ -39,6 +49,9 @@ let unlocked = false
 export function unlockSpeech(): void {
   if (unlocked || !speechAvailable()) return
   unlocked = true
+  // only touch devices (iPhone, iPad, which reports itself as a Mac) need this; on a desktop
+  // a whitespace utterance can stay stuck at the head of the engine queue and mute everything
+  if (navigator.maxTouchPoints === 0) return
   const u = new SpeechSynthesisUtterance(' ')
   u.volume = 0
   speechSynthesis.speak(u)
@@ -68,32 +81,60 @@ let chain: Promise<void> = Promise.resolve()
 /** Safari may ignore an utterance spoken right after cancel(): such a speak is delayed a little */
 let lastCancel = 0
 
-function speakNow(u: SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charIndex: number) => void): Promise<void> {
+/**
+ * Speak one utterance and resolve when it is over. Self-healing: if the voice reports an error,
+ * or nothing has started after 2 s while the engine is idle (a voice listed but unusable, as
+ * happens with some voices on macOS), the voice is dropped and the sentence is retried once
+ * with the next best voice, or the system default.
+ */
+function speakNow(make: () => SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charIndex: number) => void, attempt = 0): Promise<void> {
   return new Promise((resolve) => {
+    const u = make()
     let done = false
+    let started = false
+    const timers: ReturnType<typeof setTimeout>[] = []
     const finish = () => {
       if (done) return
       done = true
+      timers.forEach(clearTimeout)
       live.delete(u)
       resolve()
     }
+    const retry = () => {
+      if (done) return
+      done = true
+      timers.forEach(clearTimeout)
+      live.delete(u)
+      markBad(u.voice)
+      if (attempt > 0) return resolve()
+      speechSynthesis.cancel()
+      lastCancel = performance.now()
+      resolve(speakNow(make, maxMs, onBoundary, attempt + 1))
+    }
+    const onStart = u.onstart
+    u.onstart = (e) => {
+      started = true
+      onStart?.call(u, e)
+    }
     u.onend = finish
-    u.onerror = finish
+    u.onerror = (e) => (e.error === 'interrupted' || e.error === 'canceled' ? finish() : retry())
     if (onBoundary) u.onboundary = (e) => onBoundary(e.charIndex)
     live.add(u)
     // safety net when onend never comes (some engines), counted from now
-    setTimeout(finish, maxMs)
+    timers.push(setTimeout(finish, maxMs))
+    // silent voice or stuck engine: nothing started and the engine is not even speaking
+    timers.push(setTimeout(() => !started && !speechSynthesis.speaking && retry(), 2000))
     // iOS can leave the engine paused after the app went to the background
     if (speechSynthesis.paused) speechSynthesis.resume()
     const sinceCancel = performance.now() - lastCancel
-    if (sinceCancel < 80) setTimeout(() => !done && speechSynthesis.speak(u), 80 - sinceCancel)
+    if (sinceCancel < 80) timers.push(setTimeout(() => !done && speechSynthesis.speak(u), 80 - sinceCancel))
     else speechSynthesis.speak(u)
   })
 }
 
 function enqueue(make: () => SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charIndex: number) => void): Promise<void> {
   const gen = generation
-  const run = () => (gen === generation ? speakNow(make(), maxMs, onBoundary) : Promise.resolve())
+  const run = () => (gen === generation ? speakNow(make, maxMs, onBoundary) : Promise.resolve())
   const p = chain.then(run)
   chain = p.catch(() => undefined)
   return p
