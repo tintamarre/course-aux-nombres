@@ -6,29 +6,32 @@
  * is called on the first touch. Utterances are kept referenced until they end, otherwise
  * Chrome may garbage-collect them and never fire `onend`.
  */
+import { ref } from 'vue'
 import { useSettings } from './useSettings'
+import { bestVoice, isFrench, voiceScore } from './voices'
 
 const settings = useSettings()
 let voice: SpeechSynthesisVoice | null = null
+/** French voices of the device, best first (for the voice picker of the adult space) */
+export const frenchVoices = ref<SpeechSynthesisVoice[]>([])
 const live = new Set<SpeechSynthesisUtterance>()
 
 export const speechAvailable = (): boolean => typeof window !== 'undefined' && 'speechSynthesis' in window
 
-function pickVoice(): void {
-  const voices = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith('fr'))
-  const local = voices.filter((v) => v.localService)
-  const pool = local.length ? local : voices
-  voice =
-    pool.find((v) => /fr-BE/i.test(v.lang)) ??
-    pool.find((v) => /fr-FR/i.test(v.lang) && /amélie|audrey|thomas|marie/i.test(v.name)) ??
-    pool.find((v) => /fr-FR/i.test(v.lang)) ??
-    pool[0] ??
-    null
+/** The voice chosen in the adult space if it exists on this device, otherwise the best French one. */
+export function pickVoice(): void {
+  const all = speechSynthesis.getVoices()
+  frenchVoices.value = all.filter(isFrench).sort((a, b) => voiceScore(b) - voiceScore(a))
+  voice = frenchVoices.value.find((v) => v.voiceURI === settings.voiceURI) ?? bestVoice(all)
 }
+
+export const currentVoiceName = (): string => voice?.name ?? ''
 
 if (speechAvailable()) {
   pickVoice()
   speechSynthesis.addEventListener('voiceschanged', pickVoice)
+  // some browsers fill the list late and never fire voiceschanged
+  setTimeout(pickVoice, 1000)
 }
 
 let unlocked = false

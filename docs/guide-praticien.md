@@ -21,6 +21,10 @@ Dans l'onglet Suivi, « Réinitialiser l'algorithme » repart du point de dépar
 
 Les données restent **dans le navigateur de l'appareil** : rien n'est envoyé sur internet. Effacer les données du navigateur efface donc les profils. Pensez à exporter le suivi en CSV si vous souhaitez le conserver.
 
+## La voix
+
+Le jeu utilise les voix françaises installées sur l'appareil. Il choisit automatiquement la plus naturelle, mais la qualité varie beaucoup d'un appareil à l'autre. Dans l'espace adulte, onglet Réglages, on peut choisir la voix et l'écouter. La rubrique « Obtenir une voix plus naturelle » explique comment télécharger une voix « améliorée » sur iPad ou Android : cela change nettement la prononciation.
+
 ## Fréquence conseillée
 
 Dans l'étude de 2006 : **30 minutes par jour, 4 jours par semaine, pendant 5 semaines**. La durée de séance est réglable (onglet Réglages, 20 minutes par défaut). Pendant le jeu, une fine ligne en haut de l'écran se remplit au fil de la séance et devient dorée dans les 2 dernières minutes. Elle n'affiche volontairement aucun chiffre, pour ne pas interférer avec les nombres du jeu. Une fois la durée atteinte, la séance se termine à la fin du tour en cours, avec un message de félicitations.

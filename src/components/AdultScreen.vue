@@ -5,7 +5,8 @@ import { PRIORS, type PriorName } from '../engine/adaptive'
 import { LEVELS } from '../engine/levels'
 import { knowledgeOf, trialsToCsv, useProfiles } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
-import { speechAvailable } from '../composables/useSpeech'
+import { currentVoiceName, frenchVoices, hush, pickVoice, say, speechAvailable } from '../composables/useSpeech'
+import { unlockAudio } from '../composables/useSounds'
 import KnowledgeMap from './KnowledgeMap.vue'
 import TrendChart from './TrendChart.vue'
 
@@ -73,6 +74,16 @@ function exportCsv() {
   a.download = `course-aux-nombres_${current.value.name}_${new Date().toISOString().slice(0, 10)}.csv`
   a.click()
   URL.revokeObjectURL(a.href)
+}
+
+function chooseVoice() {
+  pickVoice()
+  testVoice()
+}
+function testVoice() {
+  unlockAudio()
+  hush()
+  void say("Tu as choisi cinq. Cinq, c'est plus grand que deux. Bravo, tu as le plus grand trésor ! Un, deux, trois, quatre, cinq.")
 }
 
 function confirmReset() {
@@ -201,6 +212,26 @@ function confirmRemove(id: string, name: string) {
             <span>Voix (nombres prononcés et consignes)</span>
             <span v-if="!speechAvailable()" class="text-sm text-red-700">synthèse vocale indisponible dans ce navigateur</span>
           </label>
+          <div v-if="speechAvailable()" class="space-y-2">
+            <label class="flex flex-wrap items-center gap-3">
+              <span>Voix</span>
+              <select v-model="settings.voiceURI" class="input max-w-full" @change="chooseVoice">
+                <option value="">Automatique (meilleure voix française : {{ settings.voiceURI ? '…' : currentVoiceName() || 'aucune' }})</option>
+                <option v-for="v in frenchVoices" :key="v.voiceURI" :value="v.voiceURI">{{ v.name }} ({{ v.lang }})</option>
+              </select>
+              <button type="button" class="btn-sm" @click="testVoice">Écouter</button>
+            </label>
+            <p v-if="!frenchVoices.length" class="text-sm text-red-700">Aucune voix française trouvée sur cet appareil.</p>
+            <details class="text-sm opacity-80">
+              <summary class="cursor-pointer">Obtenir une voix plus naturelle</summary>
+              <ul class="mt-1 list-disc space-y-1 pl-5">
+                <li>iPad / iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Français (France), puis télécharger une voix « améliorée » ou « premium » (par exemple Audrey ou Thomas). Recharger ensuite le jeu.</li>
+                <li>Android : installer ou mettre à jour « Services vocaux de Google », puis Paramètres › Accessibilité › Synthèse vocale › Français, avec une voix de haute qualité.</li>
+                <li>Ordinateur : Chrome propose « Google français », Edge les voix « Microsoft … Online (Natural) », très naturelles (connexion internet nécessaire).</li>
+                <li>Éviter les voix fr-CA (accent québécois) si l'enfant n'y est pas habitué.</li>
+              </ul>
+            </details>
+          </div>
           <label class="flex flex-wrap items-center gap-3">
             <span>Débit de la voix</span>
             <input v-model.number="settings.voiceRate" type="range" min="0.6" max="1.3" step="0.05" class="w-48" />
