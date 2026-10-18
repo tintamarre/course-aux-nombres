@@ -14,6 +14,7 @@ import type { Lane } from './TrackView.vue'
 import AquariumView from './AquariumView.vue'
 import CharacterSprite from './CharacterSprite.vue'
 import CrabSprite from './CrabSprite.vue'
+import Celebration from './Celebration.vue'
 import SessionTimer from './SessionTimer.vue'
 
 const props = defineProps<{ profile: Profile }>()
@@ -168,6 +169,7 @@ const fishWon = computed(() => props.profile.fish - fishAtStart)
     />
 
     <div v-else-if="phase === 'reward'" class="flex h-full flex-col items-center justify-center gap-[3vh] p-6">
+      <Celebration :character="profile.character" />
       <h2 class="title text-[8vh] leading-none text-white">Bravo !</h2>
       <AquariumView :count="profile.fish" highlight-last class="h-[38vh] w-full max-w-3xl" />
       <div v-if="unlocked" class="flex items-center gap-4 rounded-3xl bg-white/15 p-4 text-white">

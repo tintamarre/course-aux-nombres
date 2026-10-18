@@ -49,7 +49,7 @@ L'original enchaîne deux écrans (comparaison, puis plateau). Ici, les deux son
 - Puis c'est au crabe : ses pièces volent de son trésor vers la piste, il avance case par case pendant que l'ordinateur dit les numéros, et son calcul est lu de la même façon.
 - Le crabe commente les dépassements et les grands écarts, avec des variantes : « Oh non ! Tu m'as dépassé ! », « Hé ! Tu me doubles ! », « Attends-moi ! »…
 - À partir du niveau 9, des anémones apparaissent au hasard sur la piste ; elles valent pour les deux personnages. Elles sont visibles dès la présentation des trésors. Tomber dessus fait reculer, ce qui oblige à anticiper la case exacte d'arrivée (« attention portée à la quantité exacte »). Pour varier le décor, les pièges alternent entre anémone, oursin et méduse ; ils fonctionnent tous de la même façon (recul de 2 cases) et ne sont jamais à 2 cases ou moins l’un de l’autre, pour qu’un recul ne retombe pas sur un autre piège.
-- Le premier arrivé gagne la course. Si c'est l'enfant, il reçoit un poisson pour son aquarium. Les poissons débloquent de nouveaux personnages, qui changent l'apparence mais jamais la tâche.
+- Le premier arrivé gagne la course. Si c'est l'enfant, il reçoit un poisson pour son aquarium, qui garde la trace des victoires, et une petite fête tirée au hasard salue la victoire (bulles, pluie d'étoiles de mer, banc de poissons, coffre qui crache ses pièces ou danse de son animal avec le crabe), jamais deux fois la même de suite. Elle dure quelques secondes et ne bloque aucun bouton. Les poissons débloquent de nouveaux personnages, qui changent l'apparence mais jamais la tâche.
 
 ## 3. Les trois dimensions de difficulté
 
