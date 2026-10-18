@@ -13,6 +13,7 @@ import type { Lane } from './TrackView.vue'
 import AquariumView from './AquariumView.vue'
 import CharacterSprite from './CharacterSprite.vue'
 import CrabSprite from './CrabSprite.vue'
+import SessionTimer from './SessionTimer.vue'
 
 const props = defineProps<{ profile: Profile }>()
 const emit = defineEmits<{ exit: [] }>()
@@ -138,6 +139,8 @@ const fishWon = computed(() => props.profile.fish - fishAtStart)
     >
       <svg viewBox="0 0 24 24" class="h-6 w-6"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z" fill="currentColor" /></svg>
     </button>
+
+    <SessionTimer v-if="phase !== 'sessionEnd'" :start="session.start" :minutes="settings.sessionMinutes" class="absolute top-[1vh] right-3 z-10" />
 
     <TurnScreen
       v-if="phase === 'turn'"

@@ -133,7 +133,7 @@ Les tests (`src/engine/engine.test.ts`) simulent un apprenant à connaissance fi
 | Voix | Synthèse vocale du navigateur (voix locale fr-BE de préférence, sinon fr-FR) ; le comptage du crabe est dit en une seule phrase synchronisée avec les pièces | Pas de fichiers audio ; tout nombre visible peut être entendu ; une phrase par nombre était saccadée et lente |
 | Rythme | Le crabe avance en même temps qu'il compte ; son commentaire se poursuit pendant l'apparition des trésors suivants | Les auteurs ont accéléré le plateau dans la version révisée, la lenteur lassait les enfants |
 | Tablette | Gestes au toucher immédiat, son et voix déverrouillés au premier toucher (exigence d'iOS), mode paysage | Public cible en cabinet et en classe |
-| Durée de séance | Réglable, 20 min par défaut (30 min dans l'étude) | La séance se clôt à la fin du tour en cours |
+| Durée de séance | Réglable, 20 min par défaut (30 min dans l'étude) ; anneau de progression et minutes restantes dans le coin supérieur droit, mis à jour toutes les 5 s | La séance se clôt à la fin du tour en cours ; pas de secondes qui défilent, pour ne pas distraire |
 
 ## 6. Limiter les distracteurs
 
