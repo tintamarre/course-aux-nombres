@@ -117,7 +117,11 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
             <path d="M0 0 V34" stroke="#5b4a2f" stroke-width="3" />
             <path d="M2 2 H20 L15 8 L20 14 H2 Z" fill="#ef476f" />
           </g>
-          <!-- anemone (shared) -->
+          <!-- gold piece, under the square number (the square number is what is counted) -->
+          <g v-if="placed.includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL - 15}px` }">
+            <CoinIcon :x="cx(sq)" :y="SQ_Y + CELL - 15" :r="12" />
+          </g>
+          <!-- anemone (shared), drawn over the gold piece so it stays visible while counting -->
           <g v-if="hazards.includes(sq)" :transform="`translate(${cx(sq)} ${SQ_Y + CELL - 8}) scale(0.8)`">
             <g :class="{ 'anemone-hit': hit === sq }">
               <g v-for="k in 5" :key="k">
@@ -126,10 +130,6 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
               </g>
               <path d="M-15 4 Q-13 -5 0 -5 Q13 -5 15 4 Z" fill="#d94680" />
             </g>
-          </g>
-          <!-- gold piece, under the square number (the square number is what is counted) -->
-          <g v-if="placed.includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL - 15}px` }">
-            <CoinIcon :x="cx(sq)" :y="SQ_Y + CELL - 15" :r="12" />
           </g>
         </g>
 
