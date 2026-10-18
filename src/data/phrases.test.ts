@@ -13,3 +13,15 @@ describe('recorded voice', () => {
     for (const file of Object.values(manifest.clips)) expect(existsSync(`public/${manifest.base}${file}`)).toBe(true)
   })
 })
+
+describe('verdict variants', () => {
+  it('never repeats the same verdict twice in a row', async () => {
+    const { phrases } = await import('./phrases')
+    let previous = ''
+    for (let k = 0; k < 200; k++) {
+      const v = phrases.verdictWin()
+      expect(v).not.toBe(previous)
+      previous = v
+    }
+  })
+})

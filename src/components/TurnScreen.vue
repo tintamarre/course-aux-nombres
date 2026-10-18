@@ -1,12 +1,15 @@
 <script lang="ts">
-/** module scope: the "how to move" hint is spoken once per visit, not at every turn */
+/** module scope: the "how to move" and "ready?" prompts are spoken once per visit, not at every turn */
 let hintGiven = false
+let readyPromptGiven = false
 </script>
 
 <script setup lang="ts">
 /**
  * One turn of the race on a single screen: the track stays visible above the two treasures.
  *
+ * 0. ready: a big start button; the treasures (and the crab's deadline) only appear when the
+ *    child touches it, so a new round never starts while the child is looking away.
  * 1. choose: the child touches the larger treasure (before the crab reaches the key when there is
  *    a deadline). What is shown before the choice depends on the complexity level (Table 1).
  * 2. reveal: both treasures in the three formats (pieces, digit, spoken word).
@@ -42,8 +45,8 @@ const emit = defineEmits<{
 }>()
 
 const settings = useSettings()
-type Phase = 'choose' | 'reveal' | 'move' | 'crab' | 'end'
-const phase = ref<Phase>('choose')
+type Phase = 'ready' | 'choose' | 'reveal' | 'move' | 'crab' | 'end'
+const phase = ref<Phase>(settings.readyButton ? 'ready' : 'choose')
 const speaking = ref<Side | null>(null)
 const crabRunning = ref(false)
 const crabEl = ref<HTMLElement | null>(null)
@@ -101,7 +104,21 @@ const spokenText = (s: Side) => {
   return op ? operationWords(op.a, op.op, op.b) : numberWord(q(s).value)
 }
 
-onMounted(async () => {
+onMounted(() => {
+  if (phase.value === 'choose') void startRound()
+  else if (!readyPromptGiven) {
+    readyPromptGiven = true
+    void say(phrases.readyPrompt)
+  }
+})
+
+/** The child is ready: show the treasures, say them if the level is spoken, start the deadline. */
+async function startRound() {
+  if (phase.value === 'ready') {
+    hush()
+    phase.value = 'choose'
+  }
+  await nextFrame()
   shownAt = performance.now()
   if (lvl.value.spoken) {
     for (const s of sides) {
@@ -119,7 +136,7 @@ onMounted(async () => {
     crabTop.value = '0%'
     deadlineTimer = setTimeout(() => choose(null), props.problem.deadline * 1000)
   }
-})
+}
 
 onBeforeUnmount(() => {
   alive = false
@@ -164,7 +181,7 @@ async function choose(s: Side | null) {
   const small = q(other(props.problem.larger)).value
   // "plus" is always followed by "grand": speech engines read a final "le plus" as "le plu"
   message.value = `${big}, c'est plus grand que ${small}.`
-  const verdict = timedOut.value ? phrases.verdictTimeout : correct.value ? phrases.verdictWin : phrases.verdictLose
+  const verdict = timedOut.value ? phrases.verdictTimeout() : correct.value ? phrases.verdictWin() : phrases.verdictLose()
   const got = q(choice.value).value
   await say(timedOut.value ? phrases.got(got) : phrases.chose(got))
   if (!alive) return
@@ -205,7 +222,7 @@ function revealCoins(s: Side) {
 /* ---------- 3. counting the pieces onto the track ----------
  * Counting follows the paper: the pieces are counted (« un, deux, trois, quatre »), each piece
  * flies from the treasure to its square and shows the number just said, then the total is said
- * again (cardinal principle: « Quatre ! ») and the arrival square is announced (« Case onze. »).
+ * again (cardinal principle: « Quatre ! ») and the move is read as an operation (« sept plus quatre, égale onze »).
  */
 let lastFlight: Promise<void> = Promise.resolve()
 
@@ -302,7 +319,7 @@ async function hop(lane: Lane, to: number) {
   }
 }
 
-/** The pieces are on the track: say the total, walk along them, announce the arrival square. */
+/** The pieces are on the track: say the total, walk along them, read the move as an operation. */
 async function moveCharacter(lane: Lane) {
   busy.value = true
   const pos = lane === 'player' ? playerPos : crabPos
@@ -313,7 +330,9 @@ async function moveCharacter(lane: Lane) {
   if (!alive) return
   await hop(lane, m.landing)
   setOperation(lane, { a: m.from, sign: '+', b: n, result: m.landing })
-  if (!m.hitHazard) await say(m.finished ? phrases.arrived : phrases.arrival(m.landing))
+  // the move is read as the operation shown under the track: « sept plus quatre, égale onze »
+  await say(phrases.operation(m.from, '+', n, m.landing))
+  if (m.finished && alive) await say(phrases.arrived)
   await finishMove(lane, m)
 }
 
@@ -329,7 +348,7 @@ async function finishMove(lane: Lane, m: ReturnType<typeof move>) {
     await hop(lane, m.to)
     setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: m.to })
     hit.value = null
-    await say(phrases.arrival(m.to))
+    await say(phrases.operation(m.landing, '-', m.landing - m.to, m.to))
   }
   if (!alive) return
   if (m.finished) {
@@ -357,8 +376,8 @@ async function endTurn() {
   phase.value = 'end'
   const key = positionComment(props.player, props.crab, playerPos.value, crabPos.value)
   if (key) {
-    message.value = phrases[key]
-    await say(phrases[key])
+    message.value = phrases.comment(key)
+    await say(message.value)
   } else await wait(250)
   if (alive) emit('done', playerPos.value, crabPos.value, null)
 }
@@ -392,8 +411,15 @@ async function endTurn() {
       <span class="drop-shadow">{{ message }}</span>
     </div>
 
+    <!-- ready? a big start button: the round only starts when the child touches it -->
+    <div v-if="phase === 'ready'" class="flex min-h-0 flex-1 items-center justify-center pb-[6vh]">
+      <button type="button" class="start-button" aria-label="Commencer" @pointerdown.prevent="startRound">
+        <svg viewBox="0 0 24 24" class="h-1/2 w-1/2 translate-x-[6%]"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" /></svg>
+      </button>
+    </div>
+
     <!-- the two treasures, with the key and the crab in between when there is a deadline -->
-    <div class="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-[1fr_auto_1fr] gap-[2vw] px-[3vw] pb-[3vh]">
+    <div v-else class="mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-[1fr_auto_1fr] gap-[2vw] px-[3vw] pb-[3vh]">
       <div class="relative col-start-2 row-start-1 w-[9vh] min-w-14">
         <template v-if="problem.deadline !== null">
           <svg viewBox="0 0 60 60" class="absolute top-0 left-1/2 w-full -translate-x-1/2" aria-label="clé">
@@ -498,6 +524,25 @@ async function endTurn() {
 .op-crab {
   background: #e4572e;
   color: #fff;
+}
+.start-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(28vh, 40vw);
+  height: min(28vh, 40vw);
+  border-radius: 9999px;
+  background: #f8c73c;
+  color: #4a3200;
+  box-shadow: 0 8px 0 #c98a1b, 0 16px 32px rgba(0, 0, 0, 0.3);
+  animation: start-pulse 1.8s ease-in-out infinite;
+}
+.start-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 4px 0 #c98a1b, 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+@keyframes start-pulse {
+  50% { transform: scale(1.05); }
 }
 .larger-star {
   animation: star-in 0.5s ease-out both;

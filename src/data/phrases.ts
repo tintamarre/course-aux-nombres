@@ -9,6 +9,52 @@ import { HAZARD_PENALTY } from '../engine/board'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
+/**
+ * Verdicts vary so that the praise does not become repetitive. Only the encouragement varies:
+ * the mathematical sentence (« cinq, c'est plus grand que deux ») always keeps the same words,
+ * which matters for learning. Every variant stays positive, even after a mistake.
+ * (No sentence ends with « le plus »: speech engines read it « le plu ».)
+ */
+export const VERDICTS = {
+  win: [
+    'Bravo, tu as le plus grand trésor !',
+    'Super ! Le plus gros trésor est pour toi !',
+    'Bien joué ! Tu as trouvé le plus grand trésor !',
+    'Génial ! C’est toi qui as le plus de pièces !',
+    'Oui ! Ce trésor est plus grand, il est à toi !',
+    'Très bien ! Tu as choisi le plus grand trésor !',
+  ],
+  lose: [
+    'Le crabe a le plus grand trésor !',
+    'Oh ! Le plus gros trésor était de l’autre côté.',
+    'Pas cette fois ! Le crabe a plus de pièces.',
+    'Le crabe a eu le plus grand trésor. On continue !',
+    'Presque ! Le plus grand trésor était l’autre.',
+  ],
+  timeout: [
+    'Trop tard ! Le crabe a pris le plus grand trésor.',
+    'Le crabe a été plus rapide ! Il prend le plus grand trésor.',
+    'Oh, le crabe est arrivé le premier à la clé !',
+  ],
+} as const
+
+/** What the crab says about the race (paper: "I'm way behind!", "Oh no! You've overtaken me!"), with variants. */
+export const COMMENTS = {
+  overtaken: ['Oh non ! Tu m’as dépassé !', 'Zut ! Tu es passé devant moi !', 'Hé ! Tu me doubles !', 'Tu vas trop vite pour moi !'],
+  crabAhead: ['Hi hi ! Je suis devant !', 'Je passe devant toi !', 'À moi la première place !'],
+  crabFarBehind: ['Je suis loin derrière !', 'Attends-moi !', 'Tu es loin devant moi !'],
+  crabFarAhead: ['Je suis loin devant !', 'Rattrape-moi si tu peux !', 'Je file vers l’arrivée !'],
+} as const
+
+const lastPicked = new Map<readonly string[], string>()
+/** A random variant, never the same as the previous one of the same list. */
+export function pickVariant(list: readonly string[]): string {
+  const options = list.length > 1 ? list.filter((x) => x !== lastPicked.get(list)) : list
+  const choice = options[Math.floor(Math.random() * options.length)]
+  lastPicked.set(list, choice)
+  return choice
+}
+
 export const phrases = {
   /** a number on its own: counting, presentation of a quantity */
   number: (n: number) => numberWord(n),
@@ -18,20 +64,16 @@ export const phrases = {
   /** when time ran out: the child gets the smaller treasure */
   got: (n: number) => `Tu as ${numberWord(n)}.`,
   compare: (big: number, small: number) => `${cap(numberWord(big))}, c'est plus grand que ${numberWord(small)}.`,
-  // "plus" is always followed by "grand": a final "le plus" is read "le plu"
-  verdictWin: 'Bravo, tu as le plus grand trésor !',
-  verdictLose: 'Le crabe a le plus grand trésor !',
-  verdictTimeout: 'Trop tard ! Le crabe a pris le plus grand trésor.',
+  verdictWin: () => pickVariant(VERDICTS.win),
+  verdictLose: () => pickVariant(VERDICTS.lose),
+  verdictTimeout: () => pickVariant(VERDICTS.timeout),
   operation: (a: number, op: '+' | '-', b: number, result: number) => `${operationWords(a, op, b)}, égale ${numberWord(result)}.`,
-  arrival: (square: number) => (square === 0 ? 'Retour au départ.' : `Case ${numberWord(square)}.`),
   arrived: 'Arrivé !',
   hazardPlayer: `Aïe, une anémone ! Tu recules de ${numberWord(HAZARD_PENALTY)}.`,
   hazardCrab: 'Le crabe tombe sur une anémone !',
-  overtaken: 'Oh non ! Tu m’as dépassé !',
-  crabAhead: 'Hi hi ! Je suis devant !',
-  crabFarBehind: 'Je suis loin derrière !',
-  crabFarAhead: 'Je suis loin devant !',
+  comment: (key: keyof typeof COMMENTS) => pickVariant(COMMENTS[key]),
   hintMove: 'Touche tes pièces pour avancer !',
+  readyPrompt: 'Prêt ? Touche le bouton pour commencer !',
   reward: 'Bravo ! Tu as gagné la course ! Voici un poisson pour ton aquarium.',
   unlock: (article: string) => `Tu peux maintenant jouer avec ${article} !`,
   crabWon: 'Le crabe a gagné cette course. On recommence !',
@@ -52,8 +94,12 @@ export function allPhrases(): string[] {
   // additions with a sum up to 9, subtractions with operands up to 9 (Table 1 notes)
   for (let a = 1; a <= 8; a++) for (let b = 1; a + b <= 9; b++) add(phrases.operation(a, '+', b, a + b))
   for (let a = 2; a <= 9; a++) for (let b = 1; b < a; b++) add(phrases.operation(a, '-', b, a - b))
-  for (let sq = 0; sq < 20; sq++) add(phrases.arrival(sq))
+  // moves on the numbered track, read as operations: « sept plus quatre, égale onze »
+  for (let from = 0; from < 20; from++) for (let n = 1; n <= 9 && from + n <= 20; n++) add(phrases.operation(from, '+', n, from + n))
+  // going back on an anemone (anemones are on squares 2 to 18)
+  for (let sq = 2; sq <= 18; sq++) add(phrases.operation(sq, '-', HAZARD_PENALTY, sq - HAZARD_PENALTY))
   for (const c of CHARACTERS) add(phrases.unlock(c.article))
+  for (const list of [...Object.values(VERDICTS), ...Object.values(COMMENTS)]) list.forEach(add)
   for (const v of Object.values(phrases)) if (typeof v === 'string') add(v)
   return [...out]
 }

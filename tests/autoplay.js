@@ -12,7 +12,9 @@
     const btn = [...document.querySelectorAll('button')].find((b) => ['Continuer', 'On recommence !'].includes(b.textContent.trim()))
     const chosen = document.querySelector('.treasure-chosen')
     const treasures = [...document.querySelectorAll('.treasure')]
+    const start = document.querySelector('[aria-label="Commencer"]')
     if (btn) { await sleep(300 + Math.random() * 1500); btn.click(); actions.cont++ }
+    else if (start) { await sleep(200 + Math.random() * 1500); down(start); actions.start = (actions.start || 0) + 1 }
     else if (treasures.length && !chosen && treasures.every((t) => t.classList.contains('treasure-live'))) {
       await sleep(Math.random() < 0.5 ? 150 : 1200)
       down(treasures[Math.floor(Math.random() * 2)]); actions.choose++

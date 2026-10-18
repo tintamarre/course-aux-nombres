@@ -23,6 +23,10 @@ Le lien nombre–espace est assuré par le plateau, où l'enfant avance d'autant
 
 L'original enchaîne deux écrans (comparaison, puis plateau). Ici, les deux sont réunis sur **un seul écran**, plus simple à suivre pour un jeune enfant sur tablette : la piste occupe le haut de l'écran, les deux trésors le bas. La tâche et son déroulement restent identiques.
 
+### Début de manche
+
+Chaque manche commence par un grand bouton « ▶ » sous la piste. Les trésors, et le chronomètre du crabe quand il y a un délai, n'apparaissent que lorsque l'enfant le touche : une manche ne démarre jamais pendant qu'il regarde ailleurs, et le temps de réponse enregistré part du moment où il est attentif. Le bouton peut être désactivé dans l'espace adulte.
+
 ### Comparaison
 
 - Deux trésors sont présentés, à gauche et à droite. L'enfant touche celui qui contient le plus de pièces.
@@ -30,7 +34,7 @@ L'original enchaîne deux écrans (comparaison, puis plateau). Ici, les deux son
 - Le format avant le choix dépend du niveau de complexité (tableau 1 ci-dessous). Au format verbal, chaque nombre est prononcé pendant que le trésor correspondant est entouré, à gauche puis à droite.
 - **Après le choix**, chaque trésor est montré dans les trois formats : pièces rangées par lignes de cinq, chiffre et nombre prononcé. Chaque trésor porte l'étiquette « à toi » ou « au crabe ».
 - Pour une opération, la concrétisation est volontairement lente : on voit d'abord le premier terme (≈ 1 s), puis les pièces qui arrivent (addition) ou qui s'en vont (soustraction) (≈ 1,5 s). Le calcul est ensuite dit en entier (« trois plus deux égale cinq ») pendant que le résultat s'affiche.
-- Le retour décrit ensuite la comparaison, à l'oral et à l'écrit : « Tu as choisi deux. Cinq, c'est plus grand que deux. Le crabe a le plus grand trésor ! » Les phrases prononcées évitent un « le plus » en fin de phrase, que la synthèse vocale lit « le plu ».
+- Le retour décrit ensuite la comparaison, à l'oral et à l'écrit. La phrase mathématique garde toujours les mêmes mots ; seule la formule d'encouragement varie (plusieurs variantes, jamais deux fois la même de suite, toujours positives) : « Tu as choisi deux. Cinq, c'est plus grand que deux. Le crabe a le plus grand trésor ! » Les phrases prononcées évitent un « le plus » en fin de phrase, que la synthèse vocale lit « le plu ».
 - Le retour reste à l'écran au moins 3,5 s (6 s avec une opération), et l'enfant ne peut pas avancer avant la fin. Un enfant qui répond très vite reçoit donc quand même tout le retour, essentiel pour l'apprentissage.
 
 ### Déplacement sur la piste
@@ -38,11 +42,11 @@ L'original enchaîne deux écrans (comparaison, puis plateau). Ici, les deux son
 - La piste est horizontale : **une seule piste de 20 cases numérotées**, commune aux deux personnages comme le plateau de l'original. L'animal de l'enfant se tient au-dessus des cases, le crabe en dessous : on les voit tous les deux même sur la même case, et la comparaison des positions (qui est devant ?) se lit directement sur la ligne numérique.
 - Chaque déplacement est affiché comme une opération sur la piste numérotée : « 7 + 4 = 11 » pour avancer, « 11 − 2 = 9 » pour reculer sur une anémone. Le résultat apparaît à l'arrivée. L'opération de l'enfant (étiquette blanche) et celle du crabe (étiquette rouge) restent visibles pendant le tour. C'est un ajout à l'original : il relie le déplacement à l'addition et à la soustraction.
 - L'enfant avance d'autant de cases qu'il a de pièces. **On compte les pièces, comme dans l'article** : chaque toucher sur son trésor fait voler une pièce jusqu'à la case suivante (correspondance terme à terme visible) et l'ordinateur dit le nombre (« un, deux, trois, quatre »). La pièce posée porte ce nombre en grand ; le numéro de la case reste en petit, pour que l'enfant n'ait jamais deux suites de nombres en même temps.
-- Une fois toutes les pièces posées, le total est redit (principe cardinal : « Quatre ! »), le personnage avance sur les pièces, puis la case d'arrivée est annoncée (« Case onze. »).
+- Une fois toutes les pièces posées, le total est redit (principe cardinal : « Quatre ! »), le personnage avance sur les pièces, puis le déplacement est **lu comme un calcul** : « sept plus quatre, égale onze » (« zéro plus huit, égale huit » au départ, « onze moins deux, égale neuf » sur une anémone).
 - L'enfant peut aussi toucher directement la case d'arrivée : l'ordinateur pose alors les pièces en comptant.
 - Pendant le retour, le plus grand trésor est marqué d'une étoile : en cas d'erreur, l'enfant voit lequel était le plus grand. Une case erronée tremble, sans autre pénalité.
-- Puis c'est au crabe : ses pièces volent de son trésor vers la piste pendant que l'ordinateur les compte, il redit le total, avance et annonce sa case.
-- Le crabe commente les dépassements et les grands écarts : « Oh non ! Tu m'as dépassé ! », « Je suis loin derrière ! »…
+- Puis c'est au crabe : ses pièces volent de son trésor vers la piste pendant que l'ordinateur les compte, il redit le total, avance, et son calcul est lu de la même façon.
+- Le crabe commente les dépassements et les grands écarts, avec des variantes : « Oh non ! Tu m'as dépassé ! », « Hé ! Tu me doubles ! », « Attends-moi ! »…
 - À partir du niveau 9, des anémones apparaissent au hasard sur la piste ; elles valent pour les deux personnages. Elles sont visibles dès la présentation des trésors. Tomber dessus fait reculer, ce qui oblige à anticiper la case exacte d'arrivée (« attention portée à la quantité exacte »).
 - Le premier arrivé gagne la course. Si c'est l'enfant, il reçoit un poisson pour son aquarium. Les poissons débloquent de nouveaux personnages, qui changent l'apparence mais jamais la tâche.
 

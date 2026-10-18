@@ -85,7 +85,7 @@ function chooseVoice() {
 function testVoice() {
   unlockAudio()
   hush()
-  for (const text of [phrases.chose(5), phrases.compare(5, 2), phrases.verdictWin, phrases.cardinal(4), phrases.arrival(11)]) void say(text)
+  for (const text of [phrases.chose(5), phrases.compare(5, 2), phrases.verdictWin(), phrases.cardinal(4), phrases.operation(7, '+', 4, 11)]) void say(text)
 }
 /** the speech synthesis of the device, used only when a sentence has no recording */
 function testFallback() {
@@ -247,6 +247,10 @@ function confirmRemove(id: string, name: string) {
           <label class="flex items-center gap-3">
             <input v-model="settings.sounds" type="checkbox" class="h-5 w-5" />
             <span>Petits effets sonores</span>
+          </label>
+          <label class="flex items-center gap-3">
+            <input v-model="settings.readyButton" type="checkbox" class="h-5 w-5" />
+            <span>Bouton « ▶ » au début de chaque manche (les trésors n'apparaissent que quand l'enfant est prêt)</span>
           </label>
           <label class="flex items-center gap-3">
             <input v-model="settings.autoMove" type="checkbox" class="h-5 w-5" />

@@ -10,6 +10,8 @@ export interface Settings {
   sounds: boolean
   /** the computer places the gold pieces on the board instead of the child */
   autoMove: boolean
+  /** each round starts with a big start button, when the child is ready */
+  readyButton: boolean
   /** suggested session length; 0 = no limit */
   sessionMinutes: number
 }
@@ -17,7 +19,7 @@ export interface Settings {
 const KEY = 'can-settings'
 
 const settings = reactive<Settings>(
-  loadJson<Settings>(KEY, { voice: true, voiceRate: 1, voiceURI: '', sounds: true, autoMove: false, sessionMinutes: 20 }),
+  loadJson<Settings>(KEY, { voice: true, voiceRate: 1, voiceURI: '', sounds: true, autoMove: false, readyButton: true, sessionMinutes: 20 }),
 )
 
 watch(settings, () => saveJson(KEY, settings), { deep: true })
