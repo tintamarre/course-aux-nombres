@@ -20,7 +20,8 @@
 - [x] Cases numérotées et déplacements affichés comme opérations (« 7 + 4 = 11 », « 11 − 2 = 9 »)
 - [x] Choix de l'animal à la création du profil ; les autres à gagner, visibles sur l'accueil avec cadenas
 - [x] Une seule piste commune aux deux personnages (enfant au-dessus, crabe en dessous), anémones communes
-- [x] Minuteur de séance discret (anneau + minutes restantes) en haut à droite
+- [x] Minuteur de séance : fine ligne en haut de l'écran, sans chiffre
+- [x] Retour après le choix lent et descriptif (calcul dit en entier, comparaison expliquée, durée minimale)
 - [x] Son sans grésillement (sons pré-calculés, sortie audio maintenue éveillée), tours plus rapides, enregistrement différé du profil
 
 ## Idées pour la suite

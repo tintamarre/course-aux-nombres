@@ -23,7 +23,7 @@ Les données restent **dans le navigateur de l'appareil** : rien n'est envoyé s
 
 ## Fréquence conseillée
 
-Dans l'étude de 2006 : **30 minutes par jour, 4 jours par semaine, pendant 5 semaines**. La durée de séance est réglable (onglet Réglages, 20 minutes par défaut). Pendant le jeu, un anneau discret en haut à droite se remplit et indique les minutes restantes ; il devient doré dans les 2 dernières minutes. Une fois la durée atteinte, la séance se termine à la fin du tour en cours, avec un message de félicitations.
+Dans l'étude de 2006 : **30 minutes par jour, 4 jours par semaine, pendant 5 semaines**. La durée de séance est réglable (onglet Réglages, 20 minutes par défaut). Pendant le jeu, une fine ligne en haut de l'écran se remplit au fil de la séance et devient dorée dans les 2 dernières minutes. Elle n'affiche volontairement aucun chiffre, pour ne pas interférer avec les nombres du jeu. Une fois la durée atteinte, la séance se termine à la fin du tour en cours, avec un message de félicitations.
 
 Les auteurs ont observé une lassitude chez certains enfants après une dizaine d'heures. Des séances courtes et régulières valent mieux que de longues séances.
 

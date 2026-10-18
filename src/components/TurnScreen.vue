@@ -141,24 +141,46 @@ async function choose(s: Side | null) {
   emit('choice', s, rt)
 
   correct.value ? sounds.win() : sounds.lose()
-  message.value = timedOut.value ? 'Trop tard ! Le crabe a pris le plus grand.' : correct.value ? 'Tu as le plus !' : 'Le crabe a le plus !'
-  const hasOp = !!(props.problem.left.operation || props.problem.right.operation)
-  const spoken = say(`${numberWord(q(choice.value).value)} ! ${message.value}`)
-  if (hasOp) {
-    // concretise the operation: first operand, then pieces join or leave, then the result
-    await wait(200)
+  const revealStart = performance.now()
+
+  // 1. concretise the operation slowly, and say it in full: first operand, then the pieces
+  //    that join (+) or leave (−), then the result ("trois plus deux égale cinq")
+  const opSide = sides.find((x) => q(x).operation)
+  if (opSide) {
+    const op = q(opSide).operation!
+    await wait(900)
     opStep.value = 1
-    await wait(700)
+    await wait(1400)
     opStep.value = 2
+    await say(`${operationWords(op.a, op.op, op.b)}, égale ${numberWord(q(opSide).value)}.`)
+    if (!alive) return
     await wait(400)
     opStep.value = 3
   }
+
+  // 2. describe the comparison: what the child got, and why it is (or is not) the most
+  const big = q(props.problem.larger).value
+  const small = q(other(props.problem.larger)).value
+  // "plus" is always followed by "grand": speech engines read a final "le plus" as "le plu"
+  message.value = `${big}, c'est plus grand que ${small}.`
+  const verdict = timedOut.value
+    ? 'Trop tard ! Le crabe a pris le plus grand trésor.'
+    : correct.value
+      ? 'Bravo, tu as le plus grand trésor !'
+      : 'Le crabe a le plus grand trésor !'
+  await say(`${timedOut.value ? 'Tu as' : 'Tu as choisi'} ${numberWord(q(choice.value).value)}. ${numberWord(big)}, c'est plus grand que ${numberWord(small)}.`)
+  if (!alive) return
+  message.value = `${big}, c'est plus grand que ${small}. ${verdict}`
+  await say(verdict)
+
+  // 3. leave the feedback on screen a little longer: it matters for learning
+  const minFeedback = opSide ? 6000 : 3500
+  await wait(Math.max(900, minFeedback - (performance.now() - revealStart)))
   if (!alive) return
   phase.value = 'move'
   setOperation('player', { a: props.player, sign: '+', b: piecesFor('player'), result: null })
   if (settings.autoMove) {
-    await spoken
-    if (alive) await placeAll()
+    await placeAll()
   } else if (!hintGiven) {
     hintTimer = setTimeout(() => {
       if (alive && placedCount.value.player === 0 && !busy.value) {
@@ -274,7 +296,7 @@ async function finishMove(lane: Lane, m: ReturnType<typeof move>) {
     return
   }
   if (lane === 'player') await crabTurn()
-  else endTurn()
+  else await endTurn()
 }
 
 /* ---------- 4. the crab ---------- */
@@ -284,12 +306,15 @@ async function crabTurn() {
   await walkCounting('crab')
 }
 
-/** The crab's remark is not awaited: it is still heard while the next treasures appear. */
-function endTurn() {
+/** The crab's remark is short and heard before the next treasures (the next screen cuts any leftover speech). */
+async function endTurn() {
   phase.value = 'end'
   const comment = positionComment(props.player, props.crab, playerPos.value, crabPos.value)
-  if (comment) void say(comment)
-  setTimeout(() => alive && emit('done', playerPos.value, crabPos.value, null), 250)
+  if (comment) {
+    message.value = comment
+    await say(comment)
+  } else await wait(250)
+  if (alive) emit('done', playerPos.value, crabPos.value, null)
 }
 </script>
 

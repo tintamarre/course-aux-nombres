@@ -6,7 +6,7 @@ import { placeHazards } from '../engine/board'
 import { CHARACTERS, allowedCount, ownedCharacters, type Character } from '../data/characters'
 import { flushProfiles, knowledgeOf, saveProfile, storeKnowledge, type Profile, type SessionLog } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
-import { say } from '../composables/useSpeech'
+import { hush, say } from '../composables/useSpeech'
 import { sounds } from '../composables/useSounds'
 import TurnScreen from './TurnScreen.vue'
 import type { Lane } from './TrackView.vue'
@@ -107,6 +107,8 @@ async function onTurnDone(player: number, crab: number, winner: Lane | null) {
 }
 
 function next() {
+  // never let a sentence from the previous screen run over the new one ("Voici un poisson…")
+  hush()
   const elapsed = (Date.now() - session.start) / 60000
   if (settings.sessionMinutes > 0 && elapsed >= settings.sessionMinutes) {
     phase.value = 'sessionEnd'
@@ -138,7 +140,7 @@ const fishWon = computed(() => props.profile.fish - fishAtStart)
       <svg viewBox="0 0 24 24" class="h-6 w-6"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z" fill="currentColor" /></svg>
     </button>
 
-    <SessionTimer v-if="phase !== 'sessionEnd'" :start="session.start" :minutes="settings.sessionMinutes" class="absolute top-[1vh] right-3 z-10" />
+    <SessionTimer v-if="phase !== 'sessionEnd'" :start="session.start" :minutes="settings.sessionMinutes" class="absolute inset-x-0 top-0 z-10" />
 
     <TurnScreen
       v-if="phase === 'turn'"

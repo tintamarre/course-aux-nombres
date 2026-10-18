@@ -28,7 +28,10 @@ L'original enchaîne deux écrans (comparaison, puis plateau). Ici, les deux son
 - Deux trésors sont présentés, à gauche et à droite. L'enfant touche celui qui contient le plus de pièces.
 - Quand la dimension « vitesse » l'impose, une clé et un crabe apparaissent entre les deux trésors, et le crabe monte vers la clé dès la fin de la présentation. S'il l'atteint avant la réponse, il prend le plus grand trésor : l'essai est compté comme un échec et l'enfant reçoit le plus petit. Sans délai, ni clé ni crabe ne s'affichent.
 - Le format avant le choix dépend du niveau de complexité (tableau 1 ci-dessous). Au format verbal, chaque nombre est prononcé pendant que le trésor correspondant est entouré, à gauche puis à droite.
-- **Après le choix**, chaque trésor est montré dans les trois formats : pièces rangées par lignes de cinq, chiffre et nombre prononcé, dans une seule phrase avec le verdict (« Cinq ! Tu as le plus ! »). Chaque trésor porte l'étiquette « à toi » ou « au crabe ». Pour une opération, on voit d'abord le premier terme, puis les pièces qui arrivent (addition) ou qui s'en vont (soustraction), puis le résultat.
+- **Après le choix**, chaque trésor est montré dans les trois formats : pièces rangées par lignes de cinq, chiffre et nombre prononcé. Chaque trésor porte l'étiquette « à toi » ou « au crabe ».
+- Pour une opération, la concrétisation est volontairement lente : on voit d'abord le premier terme (≈ 1 s), puis les pièces qui arrivent (addition) ou qui s'en vont (soustraction) (≈ 1,5 s). Le calcul est ensuite dit en entier (« trois plus deux égale cinq ») pendant que le résultat s'affiche.
+- Le retour décrit ensuite la comparaison, à l'oral et à l'écrit : « Tu as choisi deux. Cinq, c'est plus grand que deux. Le crabe a le plus grand trésor ! » Les phrases prononcées évitent un « le plus » en fin de phrase, que la synthèse vocale lit « le plu ».
+- Le retour reste à l'écran au moins 3,5 s (6 s avec une opération), et l'enfant ne peut pas avancer avant la fin. Un enfant qui répond très vite reçoit donc quand même tout le retour, essentiel pour l'apprentissage.
 
 ### Déplacement sur la piste
 
@@ -131,9 +134,9 @@ Les tests (`src/engine/engine.test.ts`) simulent un apprenant à connaissance fi
 | Niveau 14 | Une seule opération par essai, + ou − tiré au hasard | Lecture la plus simple de « distinguer addition et soustraction » |
 | Personnages | 6 animaux marins ; l'enfant choisit le sien à la création du profil, les autres se débloquent à 3, 7, 12, 18 et 25 poissons | Le choix initial favorise l'appropriation ; les suivants restent des récompenses (« débloquer un nouveau personnage ») ; l'aquarium continue de se remplir au-delà |
 | Voix | Synthèse vocale du navigateur (voix locale fr-BE de préférence, sinon fr-FR) ; le comptage du crabe est dit en une seule phrase synchronisée avec les pièces | Pas de fichiers audio ; tout nombre visible peut être entendu ; une phrase par nombre était saccadée et lente |
-| Rythme | Le crabe avance en même temps qu'il compte ; son commentaire se poursuit pendant l'apparition des trésors suivants | Les auteurs ont accéléré le plateau dans la version révisée, la lenteur lassait les enfants |
+| Rythme | Le crabe avance en même temps qu'il compte ; toute phrase encore en cours est coupée au passage à l'écran suivant, pour que la voix ne prenne jamais de retard sur le jeu | Les auteurs ont accéléré le plateau dans la version révisée, la lenteur lassait les enfants |
 | Tablette | Gestes au toucher immédiat, son et voix déverrouillés au premier toucher (exigence d'iOS), mode paysage | Public cible en cabinet et en classe |
-| Durée de séance | Réglable, 20 min par défaut (30 min dans l'étude) ; anneau de progression et minutes restantes dans le coin supérieur droit, mis à jour toutes les 5 s | La séance se clôt à la fin du tour en cours ; pas de secondes qui défilent, pour ne pas distraire |
+| Durée de séance | Réglable, 20 min par défaut (30 min dans l'étude) ; fine ligne de progression en haut de l'écran, sans chiffre, mise à jour toutes les 5 s | La séance se clôt à la fin du tour en cours ; aucun nombre affiché, pour ne pas interférer avec ceux de la tâche |
 
 ## 6. Limiter les distracteurs
 
