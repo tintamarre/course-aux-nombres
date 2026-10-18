@@ -489,7 +489,7 @@ function nextRound() {
     </div>
 
     <!-- the two treasures, with the key and the crab in between when there is a deadline -->
-    <div v-else class="relative mx-auto grid min-h-0 w-full max-w-6xl flex-1 grid-cols-[1fr_auto_1fr] gap-[2vw] px-[3vw] pb-[3vh]">
+    <div v-else class="relative mx-auto grid min-h-0 w-full max-w-4xl flex-1 grid-cols-[1fr_auto_1fr] grid-rows-[minmax(0,44vh)] content-center gap-[2vw] px-[3vw] pb-[3vh]">
       <!-- pause between rounds: the start button floats over the results, which stay readable -->
       <button
         v-if="phase === 'pause'"
@@ -534,15 +534,15 @@ function nextRound() {
         @pointerdown.prevent="tapTreasure(s)"
         >
         <template v-if="phase === 'choose'">
-          <div v-if="q(s).operation" class="number text-[13vh] leading-none text-[#12263a]">
+          <div v-if="q(s).operation" class="number text-[9vh] leading-none text-[#12263a]">
             {{ q(s).operation!.a }}<span class="mx-[0.15em]">{{ q(s).operation!.op === '+' ? '+' : '−' }}</span>{{ q(s).operation!.b }}
           </div>
           <template v-else>
-            <div v-if="lvl.digits" class="number text-[11vh] leading-none text-[#12263a]">{{ q(s).value }}</div>
+            <div v-if="lvl.digits" class="number text-[8vh] leading-none text-[#12263a]">{{ q(s).value }}</div>
             <svg
               v-if="lvl.dots"
               :viewBox="`0 0 ${BOX} ${BOX}`"
-              class="h-full max-h-[34vh] min-h-0 w-full"
+              class="h-full max-h-[26vh] min-h-0 w-full"
               :class="{ 'fade-out': lvl.fadeSeconds !== null }"
               :style="lvl.fadeSeconds !== null ? { animationDuration: `${lvl.fadeSeconds}s` } : {}"
             >
@@ -557,14 +557,14 @@ function nextRound() {
 
         <!-- after the choice: digit + pieces (which then leave for the track) -->
         <template v-else>
-          <div class="number text-[10vh] leading-none text-[#12263a]">
+          <div class="number text-[7vh] leading-none text-[#12263a]">
             <template v-if="q(s).operation">
               {{ q(s).operation!.a }} {{ q(s).operation!.op === '+' ? '+' : '−' }} {{ q(s).operation!.b }}
               <span v-if="opStep >= 2"> = {{ q(s).value }}</span>
             </template>
             <template v-else>{{ q(s).value }}</template>
           </div>
-          <CoinRows v-bind="revealCoins(s)" :waiting="phase === 'move' && choice === s && !busy" class="mt-[2vh] h-[19vh]" />
+          <CoinRows v-bind="revealCoins(s)" :waiting="phase === 'move' && choice === s && !busy" class="mt-[1.5vh] h-[14vh]" />
           <span class="owner" :class="choice === s ? 'owner-player' : 'owner-crab'">{{ choice === s ? 'à toi' : 'au crabe' }}</span>
           <!-- the larger treasure is marked, so that a wrong choice is visibly corrected -->
           <svg v-if="s === problem.larger && opStep !== 1 && opStep !== 2" viewBox="0 0 24 24" class="larger-star absolute top-[1.5vh] right-[1.5vh] h-[6vh] w-[6vh]" aria-label="le plus grand">
