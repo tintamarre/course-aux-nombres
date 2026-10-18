@@ -2,7 +2,7 @@
 /** One play session: turns (choice + move on the track) until the suggested time is over. */
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { generateProblem, type Problem, type Side } from '../engine/problem'
-import { BOARD_LENGTH, MAX_BOARD_LENGTH, boardLength, placeHazards } from '../engine/board'
+import { BOARD_LENGTH, boardLength, placeHazards } from '../engine/board'
 import { CHARACTERS, allowedCount, ownedCharacters, type Character } from '../data/characters'
 import { flushProfiles, knowledgeOf, saveProfile, storeKnowledge, type Profile, type SessionLog } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
@@ -40,10 +40,12 @@ function newTurn(): { problem: Problem; hazards: number[] } {
   const { race } = props.profile
   // a new race gets its length from the level of its first problem (longer with bigger numbers)
   race.length ??= race.player === 0 && race.crab === 0 ? boardLength(problem.level) : BOARD_LENGTH
-  // the anemones belong to the race (the 40-square track), not to the level of each round: they
-  // stay in place until the end of the race, even when the level of a round goes down
-  race.hazards ??= race.length === MAX_BOARD_LENGTH ? placeHazards(rng, [race.player, race.crab], race.length) : []
-  return { problem, hazards: race.hazards }
+  // the traps come with level 9 (Table 1): they appear at the first problem of the race that asks
+  // for them, ahead of the characters, then stay in place until the end of the race, even when
+  // the level of a later round goes down
+  if (!race.hazards?.length && problem.level.hazards)
+    race.hazards = placeHazards(rng, [race.player, race.crab], race.length, Math.min(race.player, race.crab) + 1)
+  return { problem, hazards: race.hazards ?? [] }
 }
 const turn = ref(newTurn())
 

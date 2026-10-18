@@ -43,15 +43,17 @@ export function move(from: number, steps: number, hazards: readonly number[], le
 }
 
 /**
- * Anemones "appear at random on some board squares", never under a character, and never so close
+ * Anemones "appear at random on some board squares" (from square `from`, to put them ahead of the
+ * characters in a race already started), never under a character, and never so close
  * to each other that going back from one lands on (or just by) another.
  */
-export function placeHazards(rng: Rng, occupied: readonly number[], length = BOARD_LENGTH): number[] {
+export function placeHazards(rng: Rng, occupied: readonly number[], length = BOARD_LENGTH, from = 2): number[] {
   const count = hazardCount(length)
   const hazards: number[] = []
   let guard = 0
+  const first = Math.min(Math.max(2, from), length - 2)
   while (hazards.length < count && guard++ < 1000) {
-    const sq = randomInt(rng, 2, length - 2)
+    const sq = randomInt(rng, first, length - 2)
     if (!occupied.includes(sq) && hazards.every((h) => Math.abs(h - sq) > HAZARD_PENALTY)) hazards.push(sq)
   }
   return hazards.sort((a, b) => a - b)

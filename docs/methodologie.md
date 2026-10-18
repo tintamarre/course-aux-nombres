@@ -136,7 +136,7 @@ Les tests (`src/engine/engine.test.ts`) simulent un apprenant à connaissance fi
 | Élément | Choix | Raison |
 |---|---|---|
 | Piste | Horizontale, une seule piste commune ; 20, 30 ou 40 cases selon la complexité au début de la course ; défile au-delà de 20 cases | Comme l'original ; des courses de plusieurs tours même avec de grands nombres ; cases d'au moins 48 px au toucher |
-| Anémones | 5 sur la piste de 40 cases, communes aux deux personnages, placées au hasard au début de la course et fixes jusqu’à la fin, jamais sous un personnage | « apparaissent au hasard sur certaines cases » |
+| Anémones | 3 sur 20 cases, 4 sur 30, 5 sur 40, communes aux deux personnages, placées au hasard devant les personnages au premier problème de niveau 9 ou plus de la course, puis fixes jusqu’à la fin, jamais sous un personnage | « apparaissent au hasard sur certaines cases » |
 | Recul sur une anémone | 2 cases | Assez pour compter, sans décourager sur une piste courte |
 | Arrivée | Il suffit d'atteindre ou de dépasser la dernière case | Évite les tours bloqués |
 | Début du délai | Après la présentation (fin de la voix) | Pour ne pas pénaliser l'écoute des nombres |
