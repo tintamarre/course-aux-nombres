@@ -180,7 +180,6 @@ function placeOne(lane: Lane) {
 
 function tapTreasure(s: Side) {
   if (phase.value === 'choose') {
-    sounds.tap()
     void choose(s)
     return
   }

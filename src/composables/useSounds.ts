@@ -1,60 +1,82 @@
-/** Short, soft synthesised sounds (no audio files). Kept discreet on purpose: few distractors. */
+/**
+ * Short, soft sounds (no audio files). Kept discreet on purpose: few distractors.
+ *
+ * Anti-crackle measures, because tablets made a scratching noise on touch:
+ * - every sound is pre-rendered once into an AudioBuffer (pure sines, raised-cosine fade in and
+ *   out), so nothing is synthesised or ramped at the moment of the touch;
+ * - a silent looping source keeps the audio output awake: waking the hardware from idle on each
+ *   sound is what produces a "click" on iOS and macOS;
+ * - the context is unlocked once, on the first user activation, not on every touch.
+ */
 import { useSettings } from './useSettings'
 import { unlockSpeech } from './useSpeech'
+import { renderNotes, type Note } from './tones'
 
 const settings = useSettings()
 let ctx: AudioContext | null = null
 let master: GainNode | null = null
+let unlocked = false
+const buffers = new Map<string, AudioBuffer>()
 
-function audio(): AudioContext | null {
-  if (!settings.sounds) return null
-  if (!ctx) {
-    ctx = new AudioContext()
-    // a single compressor-free master bus at low volume avoids clipping when sounds overlap
-    master = ctx.createGain()
-    master.gain.value = 0.5
-    master.connect(ctx.destination)
-  }
-  if (ctx.state === 'suspended') void ctx.resume()
-  return ctx
+function render(a: AudioContext, notes: Note[]): AudioBuffer {
+  const data = renderNotes(a.sampleRate, notes)
+  const buf = a.createBuffer(1, data.length, a.sampleRate)
+  buf.getChannelData(0).set(data)
+  return buf
 }
 
-/** Call from a user gesture: iOS starts Web Audio and speech only after a touch. */
+function build(a: AudioContext): void {
+  for (let k = 0; k <= 9; k++) buffers.set(`coin${k}`, render(a, [{ f: 880 + k * 45, t: 0, d: 0.16, g: 0.22 }]))
+  buffers.set('tap', render(a, [{ f: 660, t: 0, d: 0.09, g: 0.16 }]))
+  buffers.set('hop', render(a, [{ f: 520, t: 0, d: 0.08, g: 0.12 }]))
+  buffers.set('win', render(a, [523, 659, 784].map((f, i) => ({ f, t: i * 0.09, d: 0.28, g: 0.2 }))))
+  buffers.set('lose', render(a, [392, 330].map((f, i) => ({ f, t: i * 0.13, d: 0.3, g: 0.18 }))))
+  buffers.set('ouch', render(a, [{ f: 247, t: 0, d: 0.32, g: 0.22 }]))
+  buffers.set('reward', render(a, [523, 659, 784, 1047].map((f, i) => ({ f, t: i * 0.11, d: 0.4, g: 0.2 }))))
+}
+
+/** Call from a user activation (pointerup / touchend): starts Web Audio and speech on iOS. */
 export function unlockAudio(): void {
+  if (unlocked) {
+    if (ctx?.state === 'suspended') void ctx.resume()
+    return
+  }
+  unlocked = true
   unlockSpeech()
-  const a = audio()
-  if (!a || !master) return
-  // play one silent sample, required by older iOS versions
-  const src = a.createBufferSource()
-  src.buffer = a.createBuffer(1, 1, 22050)
-  src.connect(master)
-  src.start(0)
+  ctx = new AudioContext({ latencyHint: 'interactive' })
+  master = ctx.createGain()
+  master.gain.value = 0.6
+  master.connect(ctx.destination)
+  build(ctx)
+  // keep the output awake with a silent loop (prevents the wake-up click before each sound)
+  const keepAlive = ctx.createBufferSource()
+  keepAlive.buffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
+  keepAlive.loop = true
+  keepAlive.connect(master)
+  keepAlive.start()
+  void ctx.resume()
+  // resume after the tab comes back (iOS suspends audio in the background)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && ctx?.state !== 'running') void ctx?.resume()
+  })
 }
 
-function tone(freq: number, start: number, duration: number, type: OscillatorType = 'sine', gain = 0.2): void {
-  const a = audio()
-  if (!a || !master || a.state !== 'running') return
-  const t = a.currentTime + 0.02 + start
-  const osc = a.createOscillator()
-  const g = a.createGain()
-  osc.type = type
-  osc.frequency.setValueAtTime(freq, t)
-  // smooth attack and release: no clicks
-  g.gain.setValueAtTime(0.0001, t)
-  g.gain.exponentialRampToValueAtTime(gain, t + 0.015)
-  g.gain.exponentialRampToValueAtTime(0.0001, t + duration)
-  osc.connect(g).connect(master)
-  osc.start(t)
-  osc.stop(t + duration + 0.05)
-  osc.onended = () => g.disconnect()
+function play(name: string): void {
+  if (!settings.sounds || !ctx || !master || ctx.state !== 'running') return
+  const buf = buffers.get(name)
+  if (!buf) return
+  const src = ctx.createBufferSource()
+  src.buffer = buf
+  src.connect(master)
+  src.start(ctx.currentTime + 0.005)
 }
 
 export const sounds = {
-  coin: (k = 0) => tone(880 + Math.min(k, 9) * 45, 0, 0.14, 'triangle', 0.12),
-  win: () => [523, 659, 784].forEach((f, i) => tone(f, i * 0.09, 0.25, 'triangle', 0.15)),
-  lose: () => [392, 330].forEach((f, i) => tone(f, i * 0.12, 0.28, 'sine', 0.12)),
-  hop: () => tone(520, 0, 0.07, 'sine', 0.08),
-  ouch: () => tone(220, 0, 0.3, 'triangle', 0.12),
-  reward: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.11, 0.35, 'triangle', 0.15)),
-  tap: () => tone(660, 0, 0.06, 'sine', 0.08),
+  coin: (k = 0) => play(`coin${Math.min(9, Math.max(0, k))}`),
+  win: () => play('win'),
+  lose: () => play('lose'),
+  hop: () => play('hop'),
+  ouch: () => play('ouch'),
+  reward: () => play('reward'),
+  tap: () => play('tap'),
 }
