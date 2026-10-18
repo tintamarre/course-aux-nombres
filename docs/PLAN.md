@@ -22,6 +22,8 @@
 - [x] Une seule piste commune aux deux personnages (enfant au-dessus, crabe en dessous), anémones communes
 - [x] Minuteur de séance : fine ligne en haut de l'écran, sans chiffre
 - [x] Comptage des pièces (1, 2, 3…) avec pièces qui volent du trésor vers leur case, total redit et case d'arrivée annoncée ; étoile sur le plus grand trésor
+- [x] Pièces posées en touchant les cases une à une ; surcomptage sur les numéros de cases (« sept, huit, neuf ») ; avancée et recul affichés comme deux calculs
+- [x] Piste de 20, 30 ou 40 cases selon la complexité, qui défile ; pause entre les manches avec le bouton « ▶ » par-dessus les résultats
 - [x] Délai minimum réglable pour le crabe (2 s par défaut, 0,25 s comme l'article)
 - [x] Bouton « ▶ » au début de chaque manche (désactivable)
 - [x] Calculs du déplacement lus à voix haute ; variantes des encouragements et des remarques du crabe

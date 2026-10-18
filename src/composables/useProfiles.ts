@@ -44,7 +44,8 @@ export interface Profile {
   character: CharacterId
   /** characters the child can play with (first one chosen at creation, then unlocked with fish) */
   owned?: CharacterId[]
-  race: { player: number; crab: number }
+  /** current race; `length` is set by the first problem of the race (20, 30 or 40 squares) */
+  race: { player: number; crab: number; length?: number }
 }
 
 const INDEX_KEY = 'can-profiles'

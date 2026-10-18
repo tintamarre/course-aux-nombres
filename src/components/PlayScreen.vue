@@ -2,7 +2,7 @@
 /** One play session: turns (choice + move on the track) until the suggested time is over. */
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { generateProblem, type Problem, type Side } from '../engine/problem'
-import { placeHazards } from '../engine/board'
+import { BOARD_LENGTH, boardLength, placeHazards } from '../engine/board'
 import { CHARACTERS, allowedCount, ownedCharacters, type Character } from '../data/characters'
 import { flushProfiles, knowledgeOf, saveProfile, storeKnowledge, type Profile, type SessionLog } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
@@ -30,14 +30,19 @@ const selectDifficulty = () => (forced?.length === 3 ? forced : ks.select(rng))
 type Phase = 'turn' | 'reward' | 'crabWon' | 'sessionEnd'
 const phase = ref<Phase>('turn')
 const round = ref(0)
+/** the next round starts with the big start button (session start, after a race); otherwise the
+ *  previous round already ended on a pause with its own start button */
+const startReady = ref(true)
 const unlocked = ref<Character | null>(null)
 
 function newTurn(): { problem: Problem; hazards: number[] } {
   const problem = generateProblem(selectDifficulty(), rng, { minDeadline: settings.minDeadline })
   const { race } = props.profile
+  // a new race gets its length from the level of its first problem (longer with bigger numbers)
+  race.length ??= race.player === 0 && race.crab === 0 ? boardLength(problem.level) : BOARD_LENGTH
   return {
     problem,
-    hazards: problem.level.hazards ? placeHazards(rng, [race.player, race.crab]) : [],
+    hazards: problem.level.hazards ? placeHazards(rng, [race.player, race.crab], race.length) : [],
   }
 }
 const turn = ref(newTurn())
@@ -85,7 +90,8 @@ function onChoice(choice: Side | null, rt: number) {
 
 function onTurnDone(player: number, crab: number, winner: Lane | null) {
   const { profile } = props
-  profile.race = winner ? { player: 0, crab: 0 } : { player, crab }
+  profile.race = winner ? { player: 0, crab: 0 } : { player, crab, length: profile.race.length }
+  startReady.value = winner !== null
   if (winner === 'player') {
     const owned = ownedCharacters(profile.owned, profile.character, profile.fish)
     profile.fish++
@@ -153,6 +159,8 @@ const fishWon = computed(() => props.profile.fish - fishAtStart)
       :character="profile.character"
       :player="profile.race.player"
       :crab="profile.race.crab"
+      :length="profile.race.length ?? 20"
+      :start-ready="startReady"
       @choice="onChoice"
       @done="onTurnDone"
     />

@@ -23,9 +23,9 @@ Le lien nombre–espace est assuré par le plateau, où l'enfant avance d'autant
 
 L'original enchaîne deux écrans (comparaison, puis plateau). Ici, les deux sont réunis sur **un seul écran**, plus simple à suivre pour un jeune enfant sur tablette : la piste occupe le haut de l'écran, les deux trésors le bas. La tâche et son déroulement restent identiques.
 
-### Début de manche
+### Début de manche et pause
 
-Chaque manche commence par un grand bouton « ▶ » sous la piste. Les trésors, et le chronomètre du crabe quand il y a un délai, n'apparaissent que lorsque l'enfant le touche : une manche ne démarre jamais pendant qu'il regarde ailleurs, et le temps de réponse enregistré part du moment où il est attentif. Le bouton peut être désactivé dans l'espace adulte.
+À la fin de chaque manche, tout reste affiché (piste, calculs, trésors) avec un bouton « ▶ » par-dessus : c'est un temps de pause pour regarder et commenter les résultats, et la manche suivante démarre au toucher. En début de séance et après une course, le bouton « ▶ » est seul à l'écran. Dans tous les cas, les trésors, et le chronomètre du crabe quand il y a un délai, n'apparaissent que lorsque l'enfant le touche : une manche ne démarre jamais pendant qu'il regarde ailleurs, et le temps de réponse enregistré part du moment où il est attentif. Le bouton peut être désactivé dans l'espace adulte.
 
 ### Comparaison
 
@@ -39,13 +39,14 @@ Chaque manche commence par un grand bouton « ▶ » sous la piste. Les trésors
 
 ### Déplacement sur la piste
 
-- La piste est horizontale : **une seule piste de 20 cases numérotées**, commune aux deux personnages comme le plateau de l'original. L'animal de l'enfant se tient au-dessus des cases, le crabe en dessous : on les voit tous les deux même sur la même case, et la comparaison des positions (qui est devant ?) se lit directement sur la ligne numérique.
+- La piste est horizontale : **une seule piste numérotée**, commune aux deux personnages comme le plateau de l'original. Sa longueur dépend de la complexité au début de la course : 20 cases avec les quantités jusqu'à 5, 30 jusqu'à 9, 40 quand il y a des anémones. Au plus 20 cases sont affichées à la fois, pour que les cases restent assez grandes au doigt : la piste défile et suit l'animal qui joue, une flèche signale l'autre animal s'il sort de la vue et un petit drapeau indique l'arrivée. L'animal de l'enfant se tient au-dessus des cases, le crabe en dessous : on les voit tous les deux même sur la même case, et la comparaison des positions (qui est devant ?) se lit directement sur la ligne numérique.
 - Chaque déplacement est affiché comme une opération sur la piste numérotée : « 7 + 4 = 11 » pour avancer, « 11 − 2 = 9 » pour reculer sur une anémone. Le résultat apparaît à l'arrivée. L'opération de l'enfant (étiquette blanche) et celle du crabe (étiquette rouge) restent visibles pendant le tour. C'est un ajout à l'original : il relie le déplacement à l'addition et à la soustraction.
-- L'enfant avance d'autant de cases qu'il a de pièces. **On compte les pièces, comme dans l'article** : chaque toucher sur son trésor fait voler une pièce jusqu'à la case suivante (correspondance terme à terme visible) et l'ordinateur dit le nombre (« un, deux, trois, quatre »). La pièce posée porte ce nombre en grand ; le numéro de la case reste en petit, pour que l'enfant n'ait jamais deux suites de nombres en même temps.
-- Une fois toutes les pièces posées, le total est redit (principe cardinal : « Quatre ! »), le personnage avance sur les pièces, puis le déplacement est **lu comme un calcul** : « sept plus quatre, égale onze » (« zéro plus huit, égale huit » au départ, « onze moins deux, égale neuf » sur une anémone).
-- L'enfant peut aussi toucher directement la case d'arrivée : l'ordinateur pose alors les pièces en comptant.
+- L'enfant avance d'autant de cases qu'il a de pièces, **en touchant les cases une à une** : à chaque toucher sur la case suivante, une pièce vole du trésor jusqu'à cette case (correspondance terme à terme visible), l'animal y avance et la voix dit **le numéro de la case** (surcomptage : de la case 6 avec 3 pièces, « sept, huit, neuf »). Une mauvaise case tremble. Si l'enfant hésite quelques secondes, la case suivante s'illumine doucement.
+- **Écart avec l'article :** l'original comptait les pièces (« un, deux, trois »). Une fois les cases numérotées, nous avons choisi avec les praticiens de compter sur les numéros des cases, pour ne jamais faire entendre une suite (1, 2, 3) pendant qu'on en voit une autre (7, 8, 9), et pour préparer l'addition.
+- Une fois arrivé, le déplacement est **lu comme un calcul** : « six plus trois, égale neuf » (« zéro plus huit, égale huit » au départ, « onze moins deux, égale neuf » sur une anémone). Avancée et recul restent affichés comme deux calculs séparés (« 7 + 6 = 13 » puis « 13 − 2 = 11 »), plutôt qu'en chaîne, qui ferait un mauvais usage du signe « = ».
+- Le raccourci de l'article est conservé : toucher directement la case d'arrivée fait poser toutes les pièces en comptant.
 - Pendant le retour, le plus grand trésor est marqué d'une étoile : en cas d'erreur, l'enfant voit lequel était le plus grand. Une case erronée tremble, sans autre pénalité.
-- Puis c'est au crabe : ses pièces volent de son trésor vers la piste pendant que l'ordinateur les compte, il redit le total, avance, et son calcul est lu de la même façon.
+- Puis c'est au crabe : ses pièces volent de son trésor vers la piste, il avance case par case pendant que l'ordinateur dit les numéros, et son calcul est lu de la même façon.
 - Le crabe commente les dépassements et les grands écarts, avec des variantes : « Oh non ! Tu m'as dépassé ! », « Hé ! Tu me doubles ! », « Attends-moi ! »…
 - À partir du niveau 9, des anémones apparaissent au hasard sur la piste ; elles valent pour les deux personnages. Elles sont visibles dès la présentation des trésors. Tomber dessus fait reculer, ce qui oblige à anticiper la case exacte d'arrivée (« attention portée à la quantité exacte »).
 - Le premier arrivé gagne la course. Si c'est l'enfant, il reçoit un poisson pour son aquarium. Les poissons débloquent de nouveaux personnages, qui changent l'apparence mais jamais la tâche.
@@ -134,8 +135,8 @@ Les tests (`src/engine/engine.test.ts`) simulent un apprenant à connaissance fi
 
 | Élément | Choix | Raison |
 |---|---|---|
-| Piste | Horizontale, une seule piste de 20 cases commune aux deux personnages, sur le même écran que les trésors | Comme l'original ; lisible d'un coup d'œil sur tablette ; cases d'au moins 48 px au toucher ; ≈ 4 à 6 tours par course, les auteurs ayant observé que la lenteur du plateau lassait |
-| Anémones | 3 par tour, communes aux deux personnages, replacées au hasard, jamais sous un personnage | « apparaissent au hasard sur certaines cases » |
+| Piste | Horizontale, une seule piste commune ; 20, 30 ou 40 cases selon la complexité au début de la course ; défile au-delà de 20 cases | Comme l'original ; des courses de plusieurs tours même avec de grands nombres ; cases d'au moins 48 px au toucher |
+| Anémones | 3 sur 20 cases, 5 sur 40, communes aux deux personnages, replacées au hasard, jamais sous un personnage | « apparaissent au hasard sur certaines cases » |
 | Recul sur une anémone | 2 cases | Assez pour compter, sans décourager sur une piste courte |
 | Arrivée | Il suffit d'atteindre ou de dépasser la dernière case | Évite les tours bloqués |
 | Début du délai | Après la présentation (fin de la voix) | Pour ne pas pénaliser l'écoute des nombres |

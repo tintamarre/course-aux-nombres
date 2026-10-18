@@ -85,7 +85,7 @@ function chooseVoice() {
 function testVoice() {
   unlockAudio()
   hush()
-  for (const text of [phrases.chose(5), phrases.compare(5, 2), phrases.verdictWin(), phrases.cardinal(4), phrases.operation(7, '+', 4, 11)]) void say(text)
+  for (const text of [phrases.chose(5), phrases.compare(5, 2), phrases.verdictWin(), phrases.number(8), phrases.number(9), phrases.number(10), phrases.number(11), phrases.operation(7, '+', 4, 11)]) void say(text)
 }
 /** the speech synthesis of the device, used only when a sentence has no recording */
 function testFallback() {

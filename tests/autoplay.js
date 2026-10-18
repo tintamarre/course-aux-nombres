@@ -12,17 +12,18 @@
     const btn = [...document.querySelectorAll('button')].find((b) => ['Continuer', 'On recommence !'].includes(b.textContent.trim()))
     const chosen = document.querySelector('.treasure-chosen')
     const treasures = [...document.querySelectorAll('.treasure')]
-    const start = document.querySelector('[aria-label="Commencer"]')
+    const start = document.querySelector('[aria-label="Commencer"], [aria-label="Manche suivante"]')
     if (btn) { await sleep(300 + Math.random() * 1500); btn.click(); actions.cont++ }
     else if (start) { await sleep(200 + Math.random() * 1500); down(start); actions.start = (actions.start || 0) + 1 }
     else if (treasures.length && !chosen && treasures.every((t) => t.classList.contains('treasure-live'))) {
       await sleep(Math.random() < 0.5 ? 150 : 1200)
       down(treasures[Math.floor(Math.random() * 2)]); actions.choose++
-    } else if (chosen && chosen.classList.contains('treasure-live')) {
-      if (Math.random() < 0.15) {
-        // arrival-square shortcut: tap a random square of the track
-        const sq = [...document.querySelectorAll('svg.track > g')]; if (sq.length) { down(sq[Math.floor(Math.random() * sq.length)]); actions.square++ }
-      } else { down(chosen); actions.coin++ }
+    } else if (chosen && document.querySelector('svg.track [data-next]')) {
+      const next = document.querySelector('svg.track [data-next]')
+      if (Math.random() < 0.15 || !next) {
+        // a random square: usually a wrong one (it shakes), sometimes the arrival square shortcut
+        const sq = [...document.querySelectorAll('svg.track .track-scroll > g')]; if (sq.length) { down(sq[Math.floor(Math.random() * sq.length)]); actions.square++ }
+      } else { down(next); actions.coin++ }
       await sleep(Math.random() < 0.5 ? 60 : 500)
     }
     if (document.body.innerText.includes("C'est fini pour aujourd'hui")) break

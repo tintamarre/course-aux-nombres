@@ -4,8 +4,8 @@
  * audio files, so each spoken sentence has its own clip (speech synthesis is only a fallback).
  */
 import { CHARACTERS } from './characters'
-import { NUMBER_WORDS, numberWord, operationWords } from './words'
-import { HAZARD_PENALTY } from '../engine/board'
+import { numberWord, operationWords } from './words'
+import { HAZARD_PENALTY, MAX_BOARD_LENGTH } from '../engine/board'
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -58,8 +58,6 @@ export function pickVariant(list: readonly string[]): string {
 export const phrases = {
   /** a number on its own: counting, presentation of a quantity */
   number: (n: number) => numberWord(n),
-  /** the total, said again after counting (cardinal principle) */
-  cardinal: (n: number) => `${cap(numberWord(n))} !`,
   chose: (n: number) => `Tu as choisi ${numberWord(n)}.`,
   /** when time ran out: the child gets the smaller treasure */
   got: (n: number) => `Tu as ${numberWord(n)}.`,
@@ -72,7 +70,7 @@ export const phrases = {
   hazardPlayer: `Aïe, une anémone ! Tu recules de ${numberWord(HAZARD_PENALTY)}.`,
   hazardCrab: 'Le crabe tombe sur une anémone !',
   comment: (key: keyof typeof COMMENTS) => pickVariant(COMMENTS[key]),
-  hintMove: 'Touche tes pièces pour avancer !',
+  hintMove: 'Touche les cases une à une pour avancer !',
   readyPrompt: 'Prêt ? Touche le bouton pour commencer !',
   reward: 'Bravo ! Tu as gagné la course ! Voici un poisson pour ton aquarium.',
   unlock: (article: string) => `Tu peux maintenant jouer avec ${article} !`,
@@ -84,9 +82,9 @@ export const phrases = {
 export function allPhrases(): string[] {
   const out = new Set<string>()
   const add = (s: string) => out.add(s)
-  for (let n = 1; n < NUMBER_WORDS.length; n++) add(phrases.number(n))
+  // counting on along the track: every square number
+  for (let n = 1; n <= MAX_BOARD_LENGTH; n++) add(phrases.number(n))
   for (let n = 1; n <= 9; n++) {
-    add(phrases.cardinal(n))
     add(phrases.chose(n))
     add(phrases.got(n))
     for (let small = 1; small < n; small++) add(phrases.compare(n, small))
@@ -95,9 +93,10 @@ export function allPhrases(): string[] {
   for (let a = 1; a <= 8; a++) for (let b = 1; a + b <= 9; b++) add(phrases.operation(a, '+', b, a + b))
   for (let a = 2; a <= 9; a++) for (let b = 1; b < a; b++) add(phrases.operation(a, '-', b, a - b))
   // moves on the numbered track, read as operations: « sept plus quatre, égale onze »
-  for (let from = 0; from < 20; from++) for (let n = 1; n <= 9 && from + n <= 20; n++) add(phrases.operation(from, '+', n, from + n))
-  // going back on an anemone (anemones are on squares 2 to 18)
-  for (let sq = 2; sq <= 18; sq++) add(phrases.operation(sq, '-', HAZARD_PENALTY, sq - HAZARD_PENALTY))
+  for (let from = 0; from < MAX_BOARD_LENGTH; from++)
+    for (let n = 1; n <= 9 && from + n <= MAX_BOARD_LENGTH; n++) add(phrases.operation(from, '+', n, from + n))
+  // going back on an anemone (anemones are never on the first two or the last two squares)
+  for (let sq = 2; sq <= MAX_BOARD_LENGTH - 2; sq++) add(phrases.operation(sq, '-', HAZARD_PENALTY, sq - HAZARD_PENALTY))
   for (const c of CHARACTERS) add(phrases.unlock(c.article))
   for (const list of [...Object.values(VERDICTS), ...Object.values(COMMENTS)]) list.forEach(add)
   for (const v of Object.values(phrases)) if (typeof v === 'string') add(v)

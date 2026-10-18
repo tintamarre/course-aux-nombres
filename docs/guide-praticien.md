@@ -37,10 +37,10 @@ Le temps laissé pour répondre change d'un essai à l'autre : c'est la dimensio
 
 ## Ce que fait l'enfant
 
-0. **Toucher le bouton « ▶ »** quand il est prêt : la manche commence.
+0. **Toucher le bouton « ▶ »** quand il est prêt : la manche commence. Entre deux manches, ce bouton apparaît par-dessus les résultats : c'est le moment de regarder ensemble ce qui s'est passé.
 1. **Comparer** : toucher le trésor qui contient le plus. Selon le niveau, les quantités sont des pièces, des chiffres, des nombres prononcés ou des petits calculs.
 2. **Observer le retour** : la quantité choisie est montrée en pièces, en chiffre et prononcée.
-3. **Avancer sur la piste**, affichée en haut du même écran : les cases sont numérotées de 1 à 20, et chaque toucher sur son trésor pose une pièce sur la case suivante (l'ordinateur compte). L'enfant peut aussi toucher directement la bonne case d'arrivée. Le déplacement s'affiche et se lit comme un calcul (« sept plus quatre, égale onze », ou « onze moins deux, égale neuf » sur une anémone). À partir du niveau 9, il faut éviter les anémones.
+3. **Avancer sur la piste**, en haut du même écran : l'enfant touche les cases une à une ; à chaque case, une pièce y vole, son animal avance et la voix dit le numéro de la case (de 6 avec 3 pièces : « sept, huit, neuf »). Il peut aussi toucher directement la case d'arrivée. Le déplacement est ensuite lu comme un calcul (« six plus trois, égale neuf »). La piste fait 20, 30 ou 40 cases selon le niveau ; à partir du niveau 9, il faut éviter les anémones.
 4. **Gagner la course** pour remporter un poisson. Les poissons débloquent de nouveaux animaux. Sur l'accueil, ceux qui restent à gagner sont grisés, avec le nombre de poissons manquants.
 
 Le réglage « Déplacement automatique » fait poser les pièces par l'ordinateur. Il accélère le jeu, mais supprime la correspondance terme à terme faite par l'enfant. Mieux vaut le réserver aux enfants qui comptent déjà de façon fiable.
