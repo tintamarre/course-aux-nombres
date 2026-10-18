@@ -7,7 +7,18 @@ import CrabSprite from './CrabSprite.vue'
 import AquariumView from './AquariumView.vue'
 
 const emit = defineEmits<{ play: []; adult: [] }>()
-const { profiles, current, select } = useProfiles()
+const { profiles, current, select, create } = useProfiles()
+
+/* creating a player happens right here, in two steps: type a name, touch « C'est parti ! » */
+const adding = ref(false)
+const newName = ref('')
+const showForm = computed(() => adding.value || profiles.value.length === 0)
+function addPlayer() {
+  if (!newName.value.trim()) return
+  create(newName.value, 'modere')
+  newName.value = ''
+  adding.value = false
+}
 
 const available = computed(() => CHARACTERS.filter((c) => (current.value?.fish ?? 0) >= c.unlockAt))
 function pickCharacter(id: (typeof CHARACTERS)[number]['id']) {
@@ -42,22 +53,44 @@ function stopHold() {
       <CrabSprite class="h-20 w-24" />
     </header>
 
-    <!-- profile choice -->
-    <div v-if="profiles.length > 1" class="mt-6 flex flex-wrap justify-center gap-3">
+    <!-- player choice -->
+    <div v-if="profiles.length && !showForm" class="mt-[3vh] flex flex-wrap justify-center gap-3">
       <button
         v-for="p in profiles"
         :key="p.id"
         type="button"
-        class="flex items-center gap-2 rounded-full px-4 py-2 text-lg font-bold transition"
-        :class="current?.id === p.id ? 'bg-white text-[#0b3954]' : 'bg-white/15 text-white hover:bg-white/25'"
+        class="flex h-14 items-center gap-2 rounded-full px-5 text-xl font-bold transition"
+        :class="current?.id === p.id ? 'bg-white text-[#0b3954]' : 'bg-white/15 text-white active:bg-white/25'"
         @click="select(p.id)"
       >
-        <CharacterSprite :id="p.character" class="h-8 w-10" />{{ p.name }}
+        <CharacterSprite :id="p.character" class="h-9 w-11" />{{ p.name }}
+      </button>
+      <button type="button" class="flex h-14 items-center gap-2 rounded-full bg-white/15 px-5 text-xl font-bold text-white active:bg-white/25" @click="adding = true">
+        <span class="text-2xl leading-none">+</span> Nouveau joueur
       </button>
     </div>
 
-    <template v-if="current">
-      <button type="button" class="btn btn-primary mt-8 text-3xl" @click="emit('play')">Jouer</button>
+    <!-- new player -->
+    <form v-if="showForm" class="mt-[4vh] flex w-full max-w-xl flex-col items-center gap-4 rounded-3xl bg-white/15 p-6 text-white" @submit.prevent="addPlayer">
+      <label for="player-name" class="text-3xl font-bold">Comment t'appelles-tu ?</label>
+      <input
+        id="player-name"
+        v-model="newName"
+        class="h-16 w-full rounded-2xl bg-white px-5 text-center text-3xl font-bold text-[#0b3954] outline-none focus:ring-4 focus:ring-[#f8c73c]"
+        placeholder="Ton prénom"
+        maxlength="20"
+        autocomplete="off"
+        autocapitalize="words"
+        enterkeyhint="go"
+      />
+      <div class="flex flex-wrap justify-center gap-3">
+        <button v-if="profiles.length" type="button" class="btn" @click="adding = false; newName = ''">Annuler</button>
+        <button type="submit" class="btn btn-primary" :disabled="!newName.trim()" :class="{ 'opacity-50': !newName.trim() }">C'est parti !</button>
+      </div>
+    </form>
+
+    <template v-if="current && !showForm">
+      <button type="button" class="btn btn-primary mt-[4vh] text-3xl" @click="emit('play')">Jouer</button>
 
       <div v-if="available.length > 1" class="mt-8 flex flex-wrap justify-center gap-2">
         <button
@@ -65,7 +98,7 @@ function stopHold() {
           :key="c.id"
           type="button"
           class="rounded-2xl p-2 transition"
-          :class="current.character === c.id ? 'bg-white/30 ring-4 ring-white' : 'bg-white/10 hover:bg-white/20'"
+          :class="current.character === c.id ? 'bg-white/30 ring-4 ring-white' : 'bg-white/10 active:bg-white/20'"
           :aria-label="c.name"
           @click="pickCharacter(c.id)"
         >
@@ -76,10 +109,6 @@ function stopHold() {
       <AquariumView :count="current.fish" class="mt-8 h-48 w-full max-w-2xl" />
     </template>
 
-    <div v-else class="mt-10 max-w-md rounded-3xl bg-white/15 p-6 text-center text-white">
-      <p class="text-xl">Bienvenue ! Un adulte doit d'abord créer un profil.</p>
-      <button type="button" class="btn btn-primary mt-4" @click="emit('adult')">Créer un profil</button>
-    </div>
 
     <!-- adult space: long press -->
     <button

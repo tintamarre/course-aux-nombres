@@ -212,7 +212,7 @@ function confirmRemove(id: string, name: string) {
           </label>
           <label class="flex items-center gap-3">
             <input v-model="settings.autoMove" type="checkbox" class="h-5 w-5" />
-            <span>Déplacement automatique sur le plateau (l'ordinateur pose les pièces en comptant)</span>
+            <span>Déplacement automatique sur la piste (l'ordinateur pose les pièces en comptant)</span>
           </label>
           <label class="flex flex-wrap items-center gap-3">
             <span>Durée de séance proposée</span>
@@ -251,7 +251,7 @@ function confirmRemove(id: string, name: string) {
             <li>Les trois dimensions de difficulté : distance numérique (rapport de Weber, R = 2), vitesse (délai de 10 s à 0,25 s), complexité conceptuelle (14 niveaux du tableau 1).</li>
             <li>L'algorithme adaptatif multidimensionnel (matrice 20 × 20 × 20, cible 75 % de réussite) avec les paramètres de l'article.</li>
             <li>Après chaque choix : la quantité dans les trois formats (pièces, chiffre, mot prononcé).</li>
-            <li>Le plateau : déplacement par correspondance terme à terme, comptage à voix haute, anémones à partir du niveau 9.</li>
+            <li>La piste : déplacement par correspondance terme à terme, comptage à voix haute, anémones à partir du niveau 9 (ici sur le même écran que les trésors).</li>
             <li>Les récompenses : poissons et nouveaux personnages ; le démarrage avec connaissances préalables de la version révisée.</li>
           </ul>
           <p>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** One play session: comparison → board → (reward) → comparison … until the suggested time is over. */
+/** One play session: turns (choice + move on the track) until the suggested time is over. */
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { generateProblem, type Problem, type Side } from '../engine/problem'
 import { placeHazards } from '../engine/board'
@@ -8,8 +8,8 @@ import { knowledgeOf, saveProfile, storeKnowledge, type Profile, type SessionLog
 import { useSettings } from '../composables/useSettings'
 import { say } from '../composables/useSpeech'
 import { sounds } from '../composables/useSounds'
-import ComparisonScreen from './ComparisonScreen.vue'
-import BoardScreen from './BoardScreen.vue'
+import TurnScreen from './TurnScreen.vue'
+import type { Lane } from './TrackView.vue'
 import AquariumView from './AquariumView.vue'
 import CharacterSprite from './CharacterSprite.vue'
 import CrabSprite from './CrabSprite.vue'
@@ -25,12 +25,22 @@ const rng = Math.random
 const forced = import.meta.env.DEV ? new URLSearchParams(location.search).get('d')?.split(',').map(Number) : undefined
 const selectDifficulty = () => (forced?.length === 3 ? forced : ks.select(rng))
 
-type Phase = 'comparison' | 'board' | 'reward' | 'crabWon' | 'sessionEnd'
-const phase = ref<Phase>('comparison')
-const problem = ref<Problem>(generateProblem(selectDifficulty(), rng))
+type Phase = 'turn' | 'reward' | 'crabWon' | 'sessionEnd'
+const phase = ref<Phase>('turn')
 const round = ref(0)
-const board = ref({ playerSteps: 0, crabSteps: 0, hazards: [] as number[] })
 const unlocked = ref<Character | null>(null)
+
+function newTurn(): { problem: Problem; hazards: Record<Lane, number[]> } {
+  const problem = generateProblem(selectDifficulty(), rng)
+  const { race } = props.profile
+  return {
+    problem,
+    hazards: problem.level.hazards
+      ? { player: placeHazards(rng, [race.player]), crab: placeHazards(rng, [race.crab]) }
+      : { player: [], crab: [] },
+  }
+}
+const turn = ref(newTurn())
 
 const session: SessionLog = { start: Date.now(), end: Date.now(), trials: 0, correct: 0 }
 props.profile.sessions.push(session)
@@ -44,12 +54,13 @@ function saveAll() {
 onBeforeUnmount(saveAll)
 
 const label = (s: Side) => {
-  const q = problem.value[s]
+  const q = turn.value.problem[s]
   return q.operation ? `${q.operation.a}${q.operation.op}${q.operation.b}` : String(q.value)
 }
 
+/** The child's answer updates the adaptive algorithm right away. */
 function onChoice(choice: Side | null, rt: number) {
-  const p = problem.value
+  const p = turn.value.problem
   const correct = choice === p.larger
   ks.update(p.difficulty, correct)
   props.profile.trials.push({
@@ -67,20 +78,9 @@ function onChoice(choice: Side | null, rt: number) {
   session.trials++
   if (correct) session.correct++
   saveAll()
-
-  const smaller: Side = p.larger === 'left' ? 'right' : 'left'
-  const got: Side = choice ?? smaller
-  const other: Side = got === 'left' ? 'right' : 'left'
-  const { race } = props.profile
-  board.value = {
-    playerSteps: p[got].value,
-    crabSteps: p[other].value,
-    hazards: p.level.hazards ? placeHazards(rng, [race.player, race.crab]) : [],
-  }
-  phase.value = 'board'
 }
 
-async function onBoardDone(player: number, crab: number, winner: 'player' | 'crab' | null) {
+async function onTurnDone(player: number, crab: number, winner: Lane | null) {
   const { profile } = props
   profile.race = winner ? { player: 0, crab: 0 } : { player, crab }
   if (winner === 'player') {
@@ -89,7 +89,7 @@ async function onBoardDone(player: number, crab: number, winner: 'player' | 'cra
     saveAll()
     phase.value = 'reward'
     sounds.reward()
-    await say('Bravo ! Tu as gagné la course ! Voici un nouveau poisson pour ton aquarium.')
+    await say('Bravo ! Tu as gagné la course ! Voici un poisson pour ton aquarium.')
     if (unlocked.value) await say(`Tu peux maintenant jouer avec ${unlocked.value.article} !`)
     return
   }
@@ -109,13 +109,14 @@ function next() {
     void say("Bravo ! C'est fini pour aujourd'hui. À bientôt !")
     return
   }
-  problem.value = generateProblem(selectDifficulty(), rng)
+  turn.value = newTurn()
   round.value++
-  phase.value = 'comparison'
+  phase.value = 'turn'
 }
 
 function playWith(c: Character) {
   props.profile.character = c.id
+  unlocked.value = null
   saveAll()
 }
 
@@ -126,33 +127,33 @@ const fishWon = computed(() => props.profile.fish - fishAtStart)
   <div class="relative h-full">
     <button
       type="button"
-      class="absolute top-3 left-3 z-10 rounded-full bg-white/10 p-2 text-white/60 hover:bg-white/20"
+      class="absolute top-[1vh] left-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white/60 active:bg-white/25"
       aria-label="Retour à l'accueil"
       @click="emit('exit')"
     >
       <svg viewBox="0 0 24 24" class="h-6 w-6"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z" fill="currentColor" /></svg>
     </button>
 
-    <ComparisonScreen v-if="phase === 'comparison'" :key="`c${round}`" :problem="problem" :character="profile.character" @done="onChoice" />
-
-    <BoardScreen
-      v-else-if="phase === 'board'"
-      :key="`b${round}`"
+    <TurnScreen
+      v-if="phase === 'turn'"
+      :key="round"
+      :problem="turn.problem"
+      :hazards="turn.hazards"
       :character="profile.character"
       :player="profile.race.player"
       :crab="profile.race.crab"
-      v-bind="board"
-      @done="onBoardDone"
+      @choice="onChoice"
+      @done="onTurnDone"
     />
 
-    <div v-else-if="phase === 'reward'" class="flex h-full flex-col items-center justify-center gap-6 p-6">
-      <h2 class="title text-5xl text-white">Bravo !</h2>
-      <AquariumView :count="profile.fish" highlight-last class="h-[40vh] w-full max-w-3xl" />
+    <div v-else-if="phase === 'reward'" class="flex h-full flex-col items-center justify-center gap-[3vh] p-6">
+      <h2 class="title text-[8vh] leading-none text-white">Bravo !</h2>
+      <AquariumView :count="profile.fish" highlight-last class="h-[38vh] w-full max-w-3xl" />
       <div v-if="unlocked" class="flex items-center gap-4 rounded-3xl bg-white/15 p-4 text-white">
         <CharacterSprite :id="unlocked.id" mood="happy" class="h-24 w-28" />
         <div>
           <p class="text-2xl font-bold">Nouveau : {{ unlocked.article }} !</p>
-          <button type="button" class="btn mt-2" @click="playWith(unlocked); unlocked = null">Jouer avec {{ unlocked.article }}</button>
+          <button type="button" class="btn mt-2" @click="playWith(unlocked)">Jouer avec {{ unlocked.article }}</button>
         </div>
       </div>
       <button type="button" class="btn btn-primary" @click="next">Continuer</button>

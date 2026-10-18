@@ -6,14 +6,19 @@
 import { computed } from 'vue'
 import CoinIcon from './CoinIcon.vue'
 
-const props = withDefaults(defineProps<{ count: number; added?: number; removed?: number }>(), { added: 0, removed: 0 })
+const props = withDefaults(defineProps<{ count: number; added?: number; removed?: number; waiting?: boolean }>(), {
+  added: 0,
+  removed: 0,
+  waiting: false,
+})
 
 const R = 14
 const STEP = 34
 const total = computed(() => props.count + props.added)
 const coins = computed(() =>
   Array.from({ length: total.value }, (_, k) => ({
-    x: R + 2 + (k % 5) * STEP,
+    // each row is centred, so the pieces stay balanced as they leave
+    x: R + 2 + (k % 5) * STEP + ((5 - Math.min(5, total.value - Math.floor(k / 5) * 5)) * STEP) / 2,
     y: R + 2 + Math.floor(k / 5) * STEP,
     added: k >= props.count,
     removed: k >= total.value - props.removed,
@@ -22,8 +27,13 @@ const coins = computed(() =>
 </script>
 
 <template>
-  <svg :viewBox="`0 0 ${4 * STEP + 2 * R + 4} ${STEP + 2 * R + 4}`" class="w-full max-w-[200px]">
-    <g v-for="(c, k) in coins" :key="k" :class="{ 'coin-in': c.added, 'coin-out': c.removed }" :style="{ transformOrigin: `${c.x}px ${c.y}px` }">
+  <svg :viewBox="`0 0 ${4 * STEP + 2 * R + 4} ${STEP + 2 * R + 4}`" class="h-full w-auto max-w-[260px]">
+    <g
+      v-for="(c, k) in coins"
+      :key="k"
+      :class="{ 'coin-in': c.added, 'coin-out': c.removed, 'coin-wait': waiting && k === coins.length - 1 }"
+      :style="{ transformOrigin: `${c.x}px ${c.y}px` }"
+    >
       <CoinIcon :x="c.x" :y="c.y" :r="R" />
     </g>
   </svg>
@@ -32,6 +42,12 @@ const coins = computed(() =>
 <style scoped>
 .coin-in {
   animation: coin-in 0.5s ease-out both;
+}
+.coin-wait {
+  animation: coin-wait 1.2s ease-in-out infinite;
+}
+@keyframes coin-wait {
+  50% { transform: translateY(-6px); }
 }
 .coin-out {
   animation: coin-out 0.7s ease-in 0.3s both;

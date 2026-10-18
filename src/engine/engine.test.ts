@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { KnowledgeSpace, PAPER_PARAMS, PRIORS } from './adaptive'
-import { BOARD_LENGTH, HAZARD_PENALTY, move, placeHazards } from './board'
+import { BOARD_LENGTH, HAZARD_COUNT, HAZARD_PENALTY, move, placeHazards } from './board'
 import { layoutDots } from './dots'
 import { LEVELS, levelFromDifficulty } from './levels'
 import { chooseLarger, chooseSmaller, deadlineSeconds, generateProblem, makeOperation } from './problem'
@@ -106,8 +106,8 @@ describe('gold pieces', () => {
 describe('board', () => {
   it('moves, finishes and applies hazards', () => {
     expect(move(0, 5, []).to).toBe(5)
-    expect(move(27, 5, []).finished).toBe(true)
-    expect(move(27, 5, []).to).toBe(BOARD_LENGTH)
+    expect(move(BOARD_LENGTH - 3, 5, []).finished).toBe(true)
+    expect(move(BOARD_LENGTH - 3, 5, []).to).toBe(BOARD_LENGTH)
     const m = move(4, 3, [7])
     expect(m.hitHazard).toBe(true)
     expect(m.to).toBe(7 - HAZARD_PENALTY)
@@ -116,7 +116,7 @@ describe('board', () => {
     const rng = mulberry32(4)
     for (let k = 0; k < 100; k++) {
       const h = placeHazards(rng, [5, 9])
-      expect(h).toHaveLength(3)
+      expect(h).toHaveLength(HAZARD_COUNT)
       expect(h).not.toContain(5)
       expect(h).not.toContain(9)
     }

@@ -14,6 +14,41 @@ body {
   overscroll-behavior: none;
 }
 
+/* touch: no double-tap zoom, no long-press callout, no accidental text selection, no grey flash */
+html,
+body {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+button {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.rotate-hint {
+  display: none;
+  background: #10587a;
+}
+@media (orientation: portrait) and (max-width: 1100px) {
+  .rotate-hint {
+    display: flex;
+  }
+}
+.rotate-anim {
+  animation: rotate-hint 2.4s ease-in-out infinite;
+}
+@keyframes rotate-hint {
+  0%, 30% { transform: rotate(0deg); }
+  60%, 100% { transform: rotate(-90deg); }
+}
+
 /* calm underwater background: static on purpose, nothing moves behind the task */
 .sea {
   background:
@@ -40,8 +75,10 @@ body {
   padding: 0.5rem 1.5rem;
   transition: transform 0.15s ease;
 }
-.btn:hover {
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .btn:hover {
+    transform: translateY(-2px);
+  }
 }
 .btn:active {
   transform: scale(0.97);
