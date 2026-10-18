@@ -3,5 +3,5 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
-  base: '/course-aux-nombres/',
+  base: '/recif-des-nombres/',
 })

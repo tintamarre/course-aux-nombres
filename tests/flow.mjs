@@ -8,7 +8,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const [seconds = '90', query = ''] = process.argv.slice(2)
-const base = process.env.FLOW_URL ?? 'http://localhost:5173/course-aux-nombres/'
+const base = process.env.FLOW_URL ?? 'http://localhost:5173/recif-des-nombres/'
 const chromePath = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const autoplay = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'autoplay.js'), 'utf8')
 const port = 9300 + Math.floor(Math.random() * 600)

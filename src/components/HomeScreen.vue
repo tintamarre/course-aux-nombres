@@ -56,7 +56,7 @@ function stopHold() {
     <header class="flex items-end gap-4">
       <CharacterSprite :id="current?.character ?? 'dauphin'" mood="happy" class="bob h-24 w-28" />
       <h1 class="title text-center text-5xl leading-none text-white drop-shadow md:text-7xl">
-        La Course<br /><span class="text-[#f8c73c]">aux nombres</span>
+        Le Récif<br /><span class="text-[#f8c73c]">des nombres</span>
       </h1>
       <CrabSprite class="h-20 w-24" />
     </header>

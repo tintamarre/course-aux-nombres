@@ -1,6 +1,6 @@
 [project]
-name = "course-aux-nombres-audio"
+name = "recif-des-nombres-audio"
 version = "0.1.0"
-description = "Generates the recorded voice of La Course aux nombres with Piper (offline)"
+description = "Generates the recorded voice of Le Récif des nombres with Piper (offline)"
 requires-python = ">=3.10"
 dependencies = ["piper-tts>=1.3"]

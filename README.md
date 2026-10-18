@@ -1,8 +1,8 @@
-# La Course aux nombres
+# Le Récif des nombres
 
 Jeu adaptatif pour développer le sens du nombre chez les enfants de 5 à 8 ans. C'est une réimplémentation libre, en HTML et JavaScript, de *The Number Race* (Wilson, Dehaene et al., unité INSERM-CEA de neuro-imagerie cognitive, 2006), fidèle à la méthodologie publiée.
 
-**Jouer : https://www.tintamarre.be/course-aux-nombres/**
+**Jouer : https://www.tintamarre.be/recif-des-nombres/**
 
 > Projet indépendant, non affilié à l'INSERM, au CEA ni aux auteurs du logiciel original. Il s'appuie sur l'article en accès libre : Wilson, A. J., Dehaene, S., Pinel, P., Revkin, S. K., Cohen, L. & Cohen, D. (2006). *Principles underlying the design of "The Number Race", an adaptive computer game for remediation of dyscalculia.* Behavioral and Brain Functions, 2:19. https://doi.org/10.1186/1744-9081-2-19
 
@@ -18,7 +18,7 @@ Prérequis : Node.js ≥ 22 et npm.
 
 ```sh
 npm install
-npm run dev       # http://localhost:5173/course-aux-nombres/
+npm run dev       # http://localhost:5173/recif-des-nombres/
 npm test          # tests du moteur (vitest)
 npm run build     # type-check + build dans dist/
 npm run test:flow # avec `npm run dev` lancé : joue automatiquement ~90 s dans Chrome headless, signale blocages et erreurs

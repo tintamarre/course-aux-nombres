@@ -72,7 +72,7 @@ function exportCsv() {
   const blob = new Blob(['﻿' + trialsToCsv(current.value)], { type: 'text/csv;charset=utf-8' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `course-aux-nombres_${current.value.name}_${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = `recif-des-nombres_${current.value.name}_${new Date().toISOString().slice(0, 10)}.csv`
   a.click()
   URL.revokeObjectURL(a.href)
 }
@@ -290,7 +290,7 @@ function confirmRemove(id: string, name: string) {
       <!-- À PROPOS -->
       <template v-else>
         <section class="card prose-sm space-y-3 leading-relaxed">
-          <h3 class="text-lg font-bold">La Course aux nombres, réimplémentation libre</h3>
+          <h3 class="text-lg font-bold">Le Récif des nombres, réimplémentation libre</h3>
           <p>
             Ce jeu reproduit les principes de <em>The Number Race</em> (« La Course aux nombres »), logiciel adaptatif de remédiation de la
             dyscalculie conçu par Anna Wilson, Stanislas Dehaene et leurs collègues de l'unité INSERM-CEA de neuro-imagerie cognitive.
@@ -312,7 +312,7 @@ function confirmRemove(id: string, name: string) {
           </ul>
           <p>
             Le détail de la méthodologie et des choix d'implémentation est documenté dans le dépôt :
-            <a class="underline" href="https://github.com/tintamarre/course-aux-nombres" target="_blank" rel="noopener">github.com/tintamarre/course-aux-nombres</a>.
+            <a class="underline" href="https://github.com/tintamarre/recif-des-nombres" target="_blank" rel="noopener">github.com/tintamarre/recif-des-nombres</a>.
           </p>
           <p class="text-sm opacity-70">{{ voiceCredit }} (https://datashare.is.ed.ac.uk/handle/10283/2353).</p>
           <p class="text-sm opacity-70">
