@@ -18,7 +18,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { Problem, Quantity, Side } from '../engine/problem'
 import { BOX, layoutDots } from '../engine/dots'
 import { BOARD_LENGTH, HAZARD_PENALTY, move, positionComment } from '../engine/board'
-import { NUMBER_WORDS, numberWord, operationWords } from '../data/words'
+import { numberWord, operationWords } from '../data/words'
+import { phrases } from '../data/phrases'
 import { countAloud, hush, say, sayNow } from '../composables/useSpeech'
 import { sounds } from '../composables/useSounds'
 import { useSettings } from '../composables/useSettings'
@@ -152,7 +153,7 @@ async function choose(s: Side | null) {
     opStep.value = 1
     await wait(1400)
     opStep.value = 2
-    await say(`${operationWords(op.a, op.op, op.b)}, égale ${numberWord(q(opSide).value)}.`)
+    await say(phrases.operation(op.a, op.op, op.b, q(opSide).value))
     if (!alive) return
     await wait(400)
     opStep.value = 3
@@ -163,12 +164,11 @@ async function choose(s: Side | null) {
   const small = q(other(props.problem.larger)).value
   // "plus" is always followed by "grand": speech engines read a final "le plus" as "le plu"
   message.value = `${big}, c'est plus grand que ${small}.`
-  const verdict = timedOut.value
-    ? 'Trop tard ! Le crabe a pris le plus grand trésor.'
-    : correct.value
-      ? 'Bravo, tu as le plus grand trésor !'
-      : 'Le crabe a le plus grand trésor !'
-  await say(`${timedOut.value ? 'Tu as' : 'Tu as choisi'} ${numberWord(q(choice.value).value)}. ${numberWord(big)}, c'est plus grand que ${numberWord(small)}.`)
+  const verdict = timedOut.value ? phrases.verdictTimeout : correct.value ? phrases.verdictWin : phrases.verdictLose
+  const got = q(choice.value).value
+  await say(timedOut.value ? phrases.got(got) : phrases.chose(got))
+  if (!alive) return
+  await say(phrases.compare(big, small))
   if (!alive) return
   message.value = `${big}, c'est plus grand que ${small}. ${verdict}`
   await say(verdict)
@@ -185,7 +185,7 @@ async function choose(s: Side | null) {
     hintTimer = setTimeout(() => {
       if (alive && placedCount.value.player === 0 && !busy.value) {
         hintGiven = true
-        void say('Touche tes pièces pour avancer !')
+        void say(phrases.hintMove)
       }
     }, 3500)
   }
@@ -256,7 +256,7 @@ function tapTreasure(s: Side) {
   }
   if (phase.value !== 'move' || busy.value || s !== choice.value || piecesLeft('player') <= 0) return
   placeOne('player')
-  sayNow(numberWord(placedCount.value.player))
+  sayNow(phrases.number(placedCount.value.player))
   if (piecesLeft('player') === 0) {
     busy.value = true
     void lastFlight.then(() => {
@@ -285,7 +285,8 @@ function tapSquare(sq: number) {
 
 /** Count the pieces aloud, one flight per number. */
 async function countPieces(lane: Lane) {
-  await countAloud(NUMBER_WORDS.slice(1, piecesFor(lane) + 1), () => placeOne(lane), lane === 'crab' ? 1.3 : 1.15)
+  const words = Array.from({ length: piecesFor(lane) }, (_, k) => phrases.number(k + 1))
+  await countAloud(words, () => placeOne(lane), lane === 'crab' ? 1.3 : 1.15)
   await lastFlight
 }
 
@@ -308,11 +309,11 @@ async function moveCharacter(lane: Lane) {
   const m = move(pos.value, q(sideOf(lane)).value, props.hazards)
   const n = m.landing - m.from
   setOperation(lane, { a: m.from, sign: '+', b: n, result: null })
-  await say(`${numberWord(n)} !`)
+  await say(phrases.cardinal(n))
   if (!alive) return
   await hop(lane, m.landing)
   setOperation(lane, { a: m.from, sign: '+', b: n, result: m.landing })
-  if (!m.hitHazard) await say(m.finished ? 'Arrivé !' : `Case ${numberWord(m.landing)}.`)
+  if (!m.hitHazard) await say(m.finished ? phrases.arrived : phrases.arrival(m.landing))
   await finishMove(lane, m)
 }
 
@@ -323,12 +324,12 @@ async function finishMove(lane: Lane, m: ReturnType<typeof move>) {
     setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: null })
     hit.value = { lane, square: m.landing }
     sounds.ouch()
-    message.value = lane === 'player' ? `Aïe, une anémone ! Tu recules de ${HAZARD_PENALTY}.` : `Le crabe tombe sur une anémone !`
-    await say(lane === 'player' ? `Aïe, une anémone ! Tu recules de ${numberWord(HAZARD_PENALTY)}.` : message.value)
+    message.value = lane === 'player' ? `Aïe, une anémone ! Tu recules de ${HAZARD_PENALTY}.` : phrases.hazardCrab
+    await say(lane === 'player' ? phrases.hazardPlayer : phrases.hazardCrab)
     await hop(lane, m.to)
     setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: m.to })
     hit.value = null
-    await say(`Case ${numberWord(m.to)}.`)
+    await say(phrases.arrival(m.to))
   }
   if (!alive) return
   if (m.finished) {
@@ -354,10 +355,10 @@ async function crabTurn() {
 /** The crab's remark is short and heard before the next treasures (the next screen cuts any leftover speech). */
 async function endTurn() {
   phase.value = 'end'
-  const comment = positionComment(props.player, props.crab, playerPos.value, crabPos.value)
-  if (comment) {
-    message.value = comment
-    await say(comment)
+  const key = positionComment(props.player, props.crab, playerPos.value, crabPos.value)
+  if (key) {
+    message.value = phrases[key]
+    await say(phrases[key])
   } else await wait(250)
   if (alive) emit('done', playerPos.value, crabPos.value, null)
 }

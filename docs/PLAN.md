@@ -22,6 +22,7 @@
 - [x] Une seule piste commune aux deux personnages (enfant au-dessus, crabe en dessous), anémones communes
 - [x] Minuteur de séance : fine ligne en haut de l'écran, sans chiffre
 - [x] Comptage des pièces (1, 2, 3…) avec pièces qui volent du trésor vers leur case, total redit et case d'arrivée annoncée ; étoile sur le plus grand trésor
+- [x] Voix enregistrée : ~200 phrases générées hors ligne avec Piper (Siwis, CC BY 4.0), lues par Web Audio, synthèse en secours
 - [x] Meilleure prononciation : choix automatique de la voix la plus naturelle, choix manuel avec « Écouter », aide pour installer une voix améliorée
 - [x] Retour après le choix lent et descriptif (calcul dit en entier, comparaison expliquée, durée minimale)
 - [x] Son sans grésillement (sons pré-calculés, sortie audio maintenue éveillée), tours plus rapides, enregistrement différé du profil
@@ -29,7 +30,7 @@
 ## Idées pour la suite
 
 - Second « monde » graphique (les auteurs en ont ajouté un dans la version révisée pour la variété), par exemple l'espace ou la jungle, avec la même logique
-- Enregistrements audio humains (fr-BE) en complément de la synthèse vocale
+- Page d'enregistrement dans l'espace adulte pour remplacer la voix Siwis par une voix humaine belge (même liste de phrases)
 - Application installable hors ligne (PWA), utile en cabinet sans réseau
 - Export et import d'un profil (fichier JSON) pour changer d'appareil
 - Rapport imprimable du suivi pour le dossier de l'enfant

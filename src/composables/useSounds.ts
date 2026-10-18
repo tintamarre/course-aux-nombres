@@ -9,7 +9,7 @@
  * - the context is unlocked once, on the first user activation, not on every touch.
  */
 import { useSettings } from './useSettings'
-import { unlockSpeech } from './useSpeech'
+import { preloadClips, unlockSpeech } from './useSpeech'
 import { renderNotes, type Note } from './tones'
 
 const settings = useSettings()
@@ -35,6 +35,9 @@ function build(a: AudioContext): void {
   buffers.set('reward', render(a, [523, 659, 784, 1047].map((f, i) => ({ f, t: i * 0.11, d: 0.4, g: 0.2 }))))
 }
 
+/** The audio context, once unlocked by a first touch (also used to play the recorded voice). */
+export const getAudioContext = (): AudioContext | null => ctx
+
 /** Call from a user activation (pointerup / touchend): starts Web Audio and speech on iOS. */
 export function unlockAudio(): void {
   if (unlocked) {
@@ -55,6 +58,8 @@ export function unlockAudio(): void {
   keepAlive.connect(master)
   keepAlive.start()
   void ctx.resume()
+  // decode the recorded voice in the background
+  void preloadClips()
   // resume after the tab comes back (iOS suspends audio in the background)
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && ctx?.state !== 'running') void ctx?.resume()

@@ -53,13 +53,26 @@ docs/              documentation métier
 
 Tout reste dans le `localStorage` du navigateur : profils, matrice de connaissances, historique des essais (5 000 au maximum par profil). Rien n'est envoyé à un serveur.
 
+## Voix enregistrée
+
+Toutes les phrases du jeu (environ 200) sont des fichiers audio pré-générés dans `public/audio/siwis/`, lus par Web Audio : même voix sur tous les appareils, sans clic, synchronisée au comptage. La synthèse vocale de l'appareil ne sert qu'en secours pour une phrase sans fichier.
+
+Les phrases sont définies à un seul endroit, `src/data/phrases.ts`. Après une modification, on régénère les fichiers (hors ligne, sur sa machine ; prérequis : `uv` et `ffmpeg`) :
+
+```sh
+npx tsx scripts/list-phrases.ts > scripts/audio/phrases.json
+uv run --project scripts/audio scripts/audio/generate.py
+```
+
+Voix : Piper `fr_FR-siwis-medium`, entraînée sur la SIWIS French Speech Synthesis Database (University of Edinburgh, https://datashare.is.ed.ac.uk/handle/10283/2353), licence CC BY 4.0.
+
 ## Tablette
 
 Le jeu est pensé pour une tablette en paysage : gestes au toucher immédiat (`pointerdown`), cibles d'au moins 48 px, pas de zoom au double toucher, et son et voix déverrouillés au premier toucher (exigence d'iOS). La voix dépend des voix françaises installées sur l'appareil.
 
 ## Licence
 
-[MIT](LICENSE). L'article source est publié sous licence CC BY 2.0.
+Code : [MIT](LICENSE). L'article source est publié sous licence CC BY 2.0. Fichiers audio de la voix : CC BY 4.0 (voir « Voix enregistrée »).
 
 ## Déploiement
 

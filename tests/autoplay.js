@@ -30,5 +30,6 @@
     await sleep(100)
   }
   const p = JSON.parse(localStorage.getItem('can-profiles')); const pr = JSON.parse(localStorage.getItem('can-profile-' + p.current) || '{}')
-  return JSON.stringify({ seconds: Math.round((performance.now() - t0) / 1000), trials: pr.trials?.length, fish: pr.fish, race: pr.race, actions, stalls, errors })
+  const clipsLoaded = performance.getEntriesByType('resource').filter((e) => e.name.includes('/audio/')).length
+  return JSON.stringify({ clipsLoaded, seconds: Math.round((performance.now() - t0) / 1000), trials: pr.trials?.length, fish: pr.fish, race: pr.race, actions, stalls, errors })
 })()

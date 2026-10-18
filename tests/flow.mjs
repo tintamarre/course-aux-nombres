@@ -32,7 +32,7 @@ ws.onmessage = (m) => {
   if (d.id && pending.has(d.id)) pending.get(d.id)(d), pending.delete(d.id)
 }
 const send = (method, params = {}) => new Promise((r) => { const i = ++id; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })) })
-const evaluate = async (expression) => (await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true })).result?.result?.value
+const evaluate = async (expression) => (await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true, userGesture: true })).result?.result?.value
 
 await send('Page.navigate', { url: base })
 await sleep(1500)
@@ -42,7 +42,8 @@ await evaluate(`localStorage.clear();
   localStorage.setItem('can-profiles', JSON.stringify({ ids: ['flow'], current: 'flow' })); 1`)
 await send('Page.navigate', { url: `${base}?mute${query ? '&' + query : ''}` })
 await sleep(2500)
-await evaluate(`[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Jouer').click(); 1`)
+// a real user gesture: unlocks Web Audio, so the recorded voice is used as on a device
+await evaluate(`document.querySelector('.sea').dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); [...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Jouer').click(); 1`)
 await sleep(800)
 const result = JSON.parse(await evaluate(`window.__DUR = ${Number(seconds) * 1000}; ${autoplay}`))
 console.log(JSON.stringify(result, null, 2))

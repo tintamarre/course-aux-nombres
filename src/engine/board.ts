@@ -39,11 +39,16 @@ export function placeHazards(rng: Rng, occupied: readonly number[], count = HAZA
   return hazards.sort((a, b) => a - b)
 }
 
-/** What the competitor says about the relative position (paper: "I'm way behind!", "Oh no! You've overtaken me!"). */
-export function positionComment(playerBefore: number, crabBefore: number, player: number, crab: number): string | null {
-  if (playerBefore <= crabBefore && player > crab) return 'Oh non ! Tu m’as dépassé !'
-  if (crabBefore <= playerBefore && crab > player) return 'Hi hi ! Je suis devant !'
-  if (player - crab >= 6) return 'Je suis loin derrière !'
-  if (crab - player >= 6) return 'Je suis loin devant !'
+export type PositionComment = 'overtaken' | 'crabAhead' | 'crabFarBehind' | 'crabFarAhead'
+
+/**
+ * What the competitor says about the relative position (paper: "I'm way behind!", "Oh no! You've
+ * overtaken me!"). Returns the key of the sentence in src/data/phrases.ts.
+ */
+export function positionComment(playerBefore: number, crabBefore: number, player: number, crab: number): PositionComment | null {
+  if (playerBefore <= crabBefore && player > crab) return 'overtaken'
+  if (crabBefore <= playerBefore && crab > player) return 'crabAhead'
+  if (player - crab >= 6) return 'crabFarBehind'
+  if (crab - player >= 6) return 'crabFarAhead'
   return null
 }

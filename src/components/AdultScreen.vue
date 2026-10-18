@@ -5,7 +5,8 @@ import { PRIORS, type PriorName } from '../engine/adaptive'
 import { LEVELS } from '../engine/levels'
 import { knowledgeOf, trialsToCsv, useProfiles } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
-import { currentVoiceName, frenchVoices, hush, pickVoice, say, speechAvailable } from '../composables/useSpeech'
+import { currentVoiceName, frenchVoices, hush, pickVoice, say, speechAvailable, voiceCredit } from '../composables/useSpeech'
+import { phrases } from '../data/phrases'
 import { unlockAudio } from '../composables/useSounds'
 import KnowledgeMap from './KnowledgeMap.vue'
 import TrendChart from './TrendChart.vue'
@@ -78,12 +79,19 @@ function exportCsv() {
 
 function chooseVoice() {
   pickVoice()
-  testVoice()
+  testFallback()
 }
+/** the recorded voice, as heard in the game */
 function testVoice() {
   unlockAudio()
   hush()
-  void say("Tu as choisi cinq. Cinq, c'est plus grand que deux. Bravo, tu as le plus grand trésor ! Un, deux, trois, quatre, cinq.")
+  for (const text of [phrases.chose(5), phrases.compare(5, 2), phrases.verdictWin, phrases.cardinal(4), phrases.arrival(11)]) void say(text)
+}
+/** the speech synthesis of the device, used only when a sentence has no recording */
+function testFallback() {
+  unlockAudio()
+  hush()
+  void say('Voici la voix de secours de cet appareil : quatorze, quinze, seize.')
 }
 
 function confirmReset() {
@@ -212,31 +220,30 @@ function confirmRemove(id: string, name: string) {
             <span>Voix (nombres prononcés et consignes)</span>
             <span v-if="!speechAvailable()" class="text-sm text-red-700">synthèse vocale indisponible dans ce navigateur</span>
           </label>
-          <div v-if="speechAvailable()" class="space-y-2">
-            <label class="flex flex-wrap items-center gap-3">
-              <span>Voix</span>
-              <select v-model="settings.voiceURI" class="input max-w-full" @change="chooseVoice">
-                <option value="">Automatique (meilleure voix française : {{ settings.voiceURI ? '…' : currentVoiceName() || 'aucune' }})</option>
-                <option v-for="v in frenchVoices" :key="v.voiceURI" :value="v.voiceURI">{{ v.name }} ({{ v.lang }})</option>
-              </select>
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-3">
+              <span>Voix enregistrée</span>
+              <span class="text-sm opacity-70">Siwis, la même sur tous les appareils</span>
               <button type="button" class="btn-sm" @click="testVoice">Écouter</button>
-            </label>
-            <p v-if="!frenchVoices.length" class="text-sm text-red-700">Aucune voix française trouvée sur cet appareil.</p>
-            <details class="text-sm opacity-80">
-              <summary class="cursor-pointer">Obtenir une voix plus naturelle</summary>
-              <ul class="mt-1 list-disc space-y-1 pl-5">
-                <li>iPad / iPhone : Réglages › Accessibilité › Contenu énoncé › Voix › Français (France), puis télécharger une voix « améliorée » ou « premium » (par exemple Audrey ou Thomas). Recharger ensuite le jeu.</li>
-                <li>Android : installer ou mettre à jour « Services vocaux de Google », puis Paramètres › Accessibilité › Synthèse vocale › Français, avec une voix de haute qualité.</li>
-                <li>Ordinateur : Chrome propose « Google français », Edge les voix « Microsoft … Online (Natural) », très naturelles (connexion internet nécessaire).</li>
-                <li>Éviter les voix fr-CA (accent québécois) si l'enfant n'y est pas habitué.</li>
-              </ul>
+            </div>
+            <details v-if="speechAvailable()" class="text-sm">
+              <summary class="cursor-pointer opacity-80">Voix de secours (synthèse de l'appareil, si une phrase n'a pas d'enregistrement)</summary>
+              <div class="mt-2 space-y-2">
+                <label class="flex flex-wrap items-center gap-3">
+                  <select v-model="settings.voiceURI" class="input max-w-full" @change="chooseVoice">
+                    <option value="">Automatique ({{ settings.voiceURI ? '…' : currentVoiceName() || 'aucune' }})</option>
+                    <option v-for="v in frenchVoices" :key="v.voiceURI" :value="v.voiceURI">{{ v.name }} ({{ v.lang }})</option>
+                  </select>
+                  <button type="button" class="btn-sm" @click="testFallback">Écouter</button>
+                </label>
+                <label class="flex flex-wrap items-center gap-3">
+                  <span>Débit</span>
+                  <input v-model.number="settings.voiceRate" type="range" min="0.6" max="1.3" step="0.05" class="w-48" />
+                  <span class="opacity-70">{{ settings.voiceRate.toFixed(2) }}</span>
+                </label>
+              </div>
             </details>
           </div>
-          <label class="flex flex-wrap items-center gap-3">
-            <span>Débit de la voix</span>
-            <input v-model.number="settings.voiceRate" type="range" min="0.6" max="1.3" step="0.05" class="w-48" />
-            <span class="text-sm opacity-70">{{ settings.voiceRate.toFixed(2) }}</span>
-          </label>
           <label class="flex items-center gap-3">
             <input v-model="settings.sounds" type="checkbox" class="h-5 w-5" />
             <span>Petits effets sonores</span>
@@ -289,6 +296,7 @@ function confirmRemove(id: string, name: string) {
             Le détail de la méthodologie et des choix d'implémentation est documenté dans le dépôt :
             <a class="underline" href="https://github.com/tintamarre/course-aux-nombres" target="_blank" rel="noopener">github.com/tintamarre/course-aux-nombres</a>.
           </p>
+          <p class="text-sm opacity-70">{{ voiceCredit }} (https://datashare.is.ed.ac.uk/handle/10283/2353).</p>
           <p class="text-sm opacity-70">
             Ce jeu est un support d'entraînement. Il ne remplace ni un bilan ni une prise en charge logopédique ou orthophonique.
           </p>

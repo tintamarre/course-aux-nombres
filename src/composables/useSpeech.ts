@@ -1,6 +1,11 @@
 /**
- * French speech through the Web Speech API. Every number the child sees can also be heard,
- * which is central to the "linking representations" principle of the game.
+ * The voice of the game. Every number the child sees can also be heard, which is central to the
+ * "linking representations" principle of the game.
+ *
+ * Sentences are played from RECORDED clips (public/audio, generated once with a Piper voice,
+ * see scripts/audio) through Web Audio: same voice on every device, sample-accurate start, no
+ * clicks. The Web Speech API (speech synthesis of the device) is only a fallback for a sentence
+ * that has no clip.
  *
  * Tablet notes: iOS only allows speech (and Web Audio) after a user gesture, so `unlockAudio`
  * is called on the first touch. Utterances are kept referenced until they end, otherwise
@@ -8,7 +13,9 @@
  */
 import { ref } from 'vue'
 import { useSettings } from './useSettings'
+import { getAudioContext } from './useSounds'
 import { bestVoice, isFrench, voiceScore } from './voices'
+import manifest from '../data/audio-manifest.json'
 
 const settings = useSettings()
 let voice: SpeechSynthesisVoice | null = null
@@ -58,14 +65,89 @@ export function unlockSpeech(): void {
 }
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+/** dev only: ?mute keeps the real speech queue (events, timings) but silent, for automated play tests */
+const muted = import.meta.env.DEV && typeof location !== 'undefined' && new URLSearchParams(location.search).has('mute')
+
+/* ---------- recorded clips ---------- */
+const clipFiles: Record<string, string> = manifest.clips
+const clipBase = import.meta.env.BASE_URL + manifest.base
+export const voiceCredit: string = manifest.credit
+const hasClip = (text: string): boolean => text in clipFiles
+const decoded = new Map<string, Promise<AudioBuffer | null>>()
+
+function loadClip(text: string): Promise<AudioBuffer | null> {
+  const ctx = getAudioContext()
+  if (!ctx || !hasClip(text)) return Promise.resolve(null)
+  let p = decoded.get(text)
+  if (!p) {
+    p = fetch(clipBase + clipFiles[text])
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+      .then((b) => ctx.decodeAudioData(b))
+      .catch(() => {
+        decoded.delete(text)
+        return null
+      })
+    decoded.set(text, p)
+  }
+  return p
+}
+
+/** Fetch and decode every clip in the background (called once audio is unlocked). */
+let preloading = false
+export async function preloadClips(): Promise<void> {
+  if (preloading || !getAudioContext()) return
+  preloading = true
+  for (const text of Object.keys(clipFiles)) await loadClip(text)
+}
+
+let current: { src: AudioBufferSourceNode; gain: GainNode } | null = null
+
+function playBuffer(buf: AudioBuffer): Promise<void> {
+  const ctx = getAudioContext()
+  if (!ctx) return Promise.resolve()
+  return new Promise((resolve) => {
+    if (ctx.state === 'suspended') void ctx.resume()
+    const src = ctx.createBufferSource()
+    const gain = ctx.createGain()
+    gain.gain.value = muted ? 0 : 1
+    src.buffer = buf
+    src.connect(gain).connect(ctx.destination)
+    let done = false
+    const finish = () => {
+      if (done) return
+      done = true
+      if (current?.src === src) current = null
+      gain.disconnect()
+      resolve()
+    }
+    src.onended = finish
+    // safety net if the context was suspended (tab in background)
+    setTimeout(finish, buf.duration * 1000 + 600)
+    current = { src, gain }
+    src.start(ctx.currentTime + 0.005)
+  })
+}
+
+/** Stop the clip being played with a 30 ms fade (an abrupt stop would click). */
+function stopClip(): void {
+  const ctx = getAudioContext()
+  if (!current || !ctx) return
+  const { src, gain } = current
+  gain.gain.setTargetAtTime(0, ctx.currentTime, 0.01)
+  try {
+    src.stop(ctx.currentTime + 0.05)
+  } catch {
+    /* already stopped */
+  }
+  current = null
+}
 
 function utterance(text: string, rate: number): SpeechSynthesisUtterance {
   const u = new SpeechSynthesisUtterance(text)
   u.lang = voice?.lang ?? 'fr-FR'
   if (voice) u.voice = voice
   u.rate = Math.min(2, settings.voiceRate * rate)
-  // dev only: ?mute keeps the real speech queue (events, timings) but silent, for automated play tests
-  if (import.meta.env.DEV && new URLSearchParams(location.search).has('mute')) u.volume = 0
+  if (muted) u.volume = 0
   return u
 }
 
@@ -132,18 +214,27 @@ function speakNow(make: () => SpeechSynthesisUtterance, maxMs: number, onBoundar
   })
 }
 
-function enqueue(make: () => SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charIndex: number) => void): Promise<void> {
+/** Run a speech job after the ones already queued (skipped if hush() was called in between). */
+function enqueue(job: () => Promise<void>, isCurrent: () => boolean = () => true): Promise<void> {
   const gen = generation
-  const run = () => (gen === generation ? speakNow(make, maxMs, onBoundary) : Promise.resolve())
+  const run = () => (gen === generation && isCurrent() ? job() : Promise.resolve())
   const p = chain.then(run)
   chain = p.catch(() => undefined)
   return p
 }
 
+/** Say one sentence: its recorded clip if there is one, the device speech synthesis otherwise. */
+async function speakText(text: string, rate: number): Promise<void> {
+  const buf = await loadClip(text)
+  if (buf) return playBuffer(buf)
+  if (!speechAvailable()) return wait(Math.min(1200, 200 + text.length * 35))
+  return speakNow(() => utterance(text, rate), 1500 + (text.length * 90) / (settings.voiceRate * rate))
+}
+
 /** Speak a sentence after the ones already queued; resolves when it is over (or after a short delay when speech is off). */
 export function say(text: string, rate = 1): Promise<void> {
-  if (!settings.voice || !speechAvailable()) return wait(Math.min(1200, 200 + text.length * 35))
-  return enqueue(() => utterance(text, rate), 1500 + (text.length * 90) / (settings.voiceRate * rate))
+  if (!settings.voice) return wait(Math.min(1200, 200 + text.length * 35))
+  return enqueue(() => speakText(text, rate))
 }
 
 /**
@@ -153,18 +244,19 @@ export function say(text: string, rate = 1): Promise<void> {
  */
 let latestCount = 0
 export function sayNow(text: string, rate = 1.1): void {
-  if (!settings.voice || !speechAvailable()) return
+  if (!settings.voice) return
   const token = ++latestCount
-  const gen = generation
-  const run = () => (gen === generation && token === latestCount ? speakNow(() => utterance(text, rate), 2500) : Promise.resolve())
-  const p = chain.then(run)
-  chain = p.catch(() => undefined)
+  void enqueue(
+    () => speakText(text, rate),
+    () => token === latestCount,
+  )
 }
 
 /**
- * Count aloud "un, deux, trois…" as ONE utterance (much smoother than one utterance per number)
- * and call onTick(k) as each number is spoken. Uses word boundaries when the engine reports
- * them, a timer otherwise; every tick is guaranteed to fire before the promise resolves.
+ * Count aloud "un, deux, trois…" and call onTick(k) as each number starts. With recorded clips,
+ * each number is its own clip, so every piece moves exactly when its number is heard. With the
+ * speech synthesis fallback the count is ONE utterance (much smoother than one per number), with
+ * word boundaries or a timer. Every tick is guaranteed to fire before the promise resolves.
  */
 export async function countAloud(words: string[], onTick: (k: number) => void, rate = 1.2): Promise<void> {
   let next = 0
@@ -173,6 +265,21 @@ export async function countAloud(words: string[], onTick: (k: number) => void, r
   }
   const step = 420 / (settings.voiceRate * rate)
   if (!words.length) return
+  if (settings.voice && getAudioContext() && words.every(hasClip)) {
+    const gen = generation
+    await enqueue(async () => {
+      for (let k = 0; k < words.length && gen === generation; k++) {
+        const buf = await loadClip(words[k])
+        tick(k)
+        if (buf) await playBuffer(buf)
+        else await wait(step)
+        // a short pause between numbers, a little shorter for the crab
+        await wait(rate > 1.2 ? 60 : 140)
+      }
+    })
+    tick(words.length)
+    return
+  }
   if (!settings.voice || !speechAvailable()) {
     for (let k = 0; k < words.length; k++) {
       tick(k)
@@ -196,19 +303,21 @@ export async function countAloud(words: string[], onTick: (k: number) => void, r
       if (!boundaries) tick(++k)
     }, step)
   }
-  await enqueue(
-    () => {
-      const u = utterance(text, rate)
-      u.onstart = cadence
-      // some engines never fire onstart: start the cadence anyway
-      startGuard = setTimeout(cadence, 600)
-      return u
-    },
-    1500 + words.length * 700,
-    (charIndex) => {
-      boundaries = true
-      tick(starts.filter((x) => x <= charIndex).length - 1)
-    },
+  await enqueue(() =>
+    speakNow(
+      () => {
+        const u = utterance(text, rate)
+        u.onstart = cadence
+        // some engines never fire onstart: start the cadence anyway
+        startGuard = setTimeout(cadence, 600)
+        return u
+      },
+      1500 + words.length * 700,
+      (charIndex) => {
+        boundaries = true
+        tick(starts.filter((x) => x <= charIndex).length - 1)
+      },
+    ),
   )
   clearTimeout(startGuard)
   clearInterval(timer)
@@ -219,6 +328,7 @@ export async function countAloud(words: string[], onTick: (k: number) => void, r
 export function hush(): void {
   generation++
   chain = Promise.resolve()
+  stopClip()
   // cancel only when something is actually being said: a needless cancel can click on some systems
   if (speechAvailable() && (speechSynthesis.speaking || speechSynthesis.pending)) {
     speechSynthesis.cancel()

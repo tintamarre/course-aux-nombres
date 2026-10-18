@@ -23,7 +23,7 @@ Les données restent **dans le navigateur de l'appareil** : rien n'est envoyé s
 
 ## La voix
 
-Le jeu utilise les voix françaises installées sur l'appareil. Il choisit automatiquement la plus naturelle, mais la qualité varie beaucoup d'un appareil à l'autre. Dans l'espace adulte, onglet Réglages, on peut choisir la voix et l'écouter. La rubrique « Obtenir une voix plus naturelle » explique comment télécharger une voix « améliorée » sur iPad ou Android : cela change nettement la prononciation.
+Le jeu parle avec une voix enregistrée, la même sur tous les appareils (voix de synthèse Siwis, générée une fois pour toutes). Dans l'espace adulte, onglet Réglages, « Écouter » la fait entendre. Si une phrase n'a pas d'enregistrement, le jeu utilise la synthèse vocale de l'appareil, qu'on peut choisir dans « Voix de secours ».
 
 ## Fréquence conseillée
 

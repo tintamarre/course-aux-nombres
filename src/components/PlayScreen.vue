@@ -7,6 +7,7 @@ import { CHARACTERS, allowedCount, ownedCharacters, type Character } from '../da
 import { flushProfiles, knowledgeOf, saveProfile, storeKnowledge, type Profile, type SessionLog } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
 import { hush, say } from '../composables/useSpeech'
+import { phrases } from '../data/phrases'
 import { sounds } from '../composables/useSounds'
 import TurnScreen from './TurnScreen.vue'
 import type { Lane } from './TrackView.vue'
@@ -95,14 +96,14 @@ function onTurnDone(player: number, crab: number, winner: Lane | null) {
     sounds.reward()
     const gift = unlocked.value
     // both sentences are queued at once, so "Continuer" (which hushes) cancels them together
-    void say('Bravo ! Tu as gagné la course ! Voici un poisson pour ton aquarium.')
-    if (gift) void say(`Tu peux maintenant jouer avec ${gift.article} !`)
+    void say(phrases.reward)
+    if (gift) void say(phrases.unlock(gift.article))
     return
   }
   saveAll()
   if (winner === 'crab') {
     phase.value = 'crabWon'
-    void say('Le crabe a gagné cette course. On recommence !')
+    void say(phrases.crabWon)
     return
   }
   next()
@@ -114,7 +115,7 @@ function next() {
   const elapsed = (Date.now() - session.start) / 60000
   if (settings.sessionMinutes > 0 && elapsed >= settings.sessionMinutes) {
     phase.value = 'sessionEnd'
-    void say("Bravo ! C'est fini pour aujourd'hui. À bientôt !")
+    void say(phrases.sessionEnd)
     return
   }
   turn.value = newTurn()
