@@ -33,7 +33,7 @@ const round = ref(0)
 const unlocked = ref<Character | null>(null)
 
 function newTurn(): { problem: Problem; hazards: number[] } {
-  const problem = generateProblem(selectDifficulty(), rng)
+  const problem = generateProblem(selectDifficulty(), rng, { minDeadline: settings.minDeadline })
   const { race } = props.profile
   return {
     problem,

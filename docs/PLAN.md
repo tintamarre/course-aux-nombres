@@ -22,6 +22,7 @@
 - [x] Une seule piste commune aux deux personnages (enfant au-dessus, crabe en dessous), anémones communes
 - [x] Minuteur de séance : fine ligne en haut de l'écran, sans chiffre
 - [x] Comptage des pièces (1, 2, 3…) avec pièces qui volent du trésor vers leur case, total redit et case d'arrivée annoncée ; étoile sur le plus grand trésor
+- [x] Délai minimum réglable pour le crabe (2 s par défaut, 0,25 s comme l'article)
 - [x] Bouton « ▶ » au début de chaque manche (désactivable)
 - [x] Calculs du déplacement lus à voix haute ; variantes des encouragements et des remarques du crabe
 - [x] Voix enregistrée : ~200 phrases générées hors ligne avec Piper (Siwis, CC BY 4.0), lues par Web Audio, synthèse en secours

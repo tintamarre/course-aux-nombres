@@ -12,6 +12,8 @@ export interface Settings {
   autoMove: boolean
   /** each round starts with a big start button, when the child is ready */
   readyButton: boolean
+  /** shortest time given to answer when the crab runs to the key, in seconds (paper: 0.25) */
+  minDeadline: number
   /** suggested session length; 0 = no limit */
   sessionMinutes: number
 }
@@ -19,7 +21,7 @@ export interface Settings {
 const KEY = 'can-settings'
 
 const settings = reactive<Settings>(
-  loadJson<Settings>(KEY, { voice: true, voiceRate: 1, voiceURI: '', sounds: true, autoMove: false, readyButton: true, sessionMinutes: 20 }),
+  loadJson<Settings>(KEY, { voice: true, voiceRate: 1, voiceURI: '', sounds: true, autoMove: false, readyButton: true, minDeadline: 2, sessionMinutes: 20 }),
 )
 
 watch(settings, () => saveJson(KEY, settings), { deep: true })

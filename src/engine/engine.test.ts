@@ -56,6 +56,16 @@ describe('speed dimension', () => {
 })
 
 describe('problems', () => {
+  it('never gives a deadline shorter than the practitioner minimum', () => {
+    const rng = mulberry32(9)
+    for (let k = 0; k < 300; k++) {
+      const p = generateProblem([0.3 + 0.7 * rng(), rng(), rng()], rng, { minDeadline: 2 })
+      expect(p.deadline).not.toBeNull()
+      expect(p.deadline!).toBeGreaterThanOrEqual(2)
+    }
+    expect(generateProblem([0.1, 0.5, 0.5], rng, { minDeadline: 2 }).deadline).toBeNull()
+  })
+
   it('writes operations within the paper limits', () => {
     const rng = mulberry32(1)
     for (let k = 0; k < 500; k++) {

@@ -81,7 +81,15 @@ export function makeOperation(rng: Rng, value: number, op: Operator, xMax: numbe
   return { a: value + b, b, op }
 }
 
-export function generateProblem(d: Difficulty, rng: Rng): Problem {
+export interface ProblemOptions {
+  /**
+   * shortest deadline allowed, in seconds (practitioner setting; the paper goes down to
+   * v_min = 0.25 s, which it describes as hard even for adults)
+   */
+  minDeadline?: number
+}
+
+export function generateProblem(d: Difficulty, rng: Rng, options: ProblemOptions = {}): Problem {
   const [ds, dd, dn] = d
   const level = levelFromDifficulty(dn)
   const xMax = level.smallRange ? 5 : 9
@@ -113,7 +121,10 @@ export function generateProblem(d: Difficulty, rng: Rng): Problem {
     left: larger === 'left' ? big : small,
     right: larger === 'left' ? small : big,
     larger,
-    deadline: deadlineSeconds(ds),
+    deadline: (() => {
+      const v = deadlineSeconds(ds)
+      return v === null ? null : Math.max(v, options.minDeadline ?? DEADLINE.vMin)
+    })(),
     dotControl: rng() < 0.5 ? 'luminance' : 'density',
   }
 }

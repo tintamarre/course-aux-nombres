@@ -257,6 +257,20 @@ function confirmRemove(id: string, name: string) {
             <span>Déplacement automatique sur la piste (l'ordinateur pose les pièces en comptant)</span>
           </label>
           <label class="flex flex-wrap items-center gap-3">
+            <span>Temps minimum pour répondre quand le crabe court vers la clé</span>
+            <select v-model.number="settings.minDeadline" class="input">
+              <option :value="0.25">0,25 s (article)</option>
+              <option :value="1">1 s</option>
+              <option :value="1.5">1,5 s</option>
+              <option :value="2">2 s (recommandé pour les 5-8 ans)</option>
+              <option :value="3">3 s</option>
+              <option :value="5">5 s</option>
+            </select>
+          </label>
+          <p class="-mt-2 text-sm opacity-70">
+            Le délai donné par l'algorithme varie d'un essai à l'autre (de 10 s au minimum choisi ici) ; sous un certain niveau de vitesse, il n'y a pas de délai du tout.
+          </p>
+          <label class="flex flex-wrap items-center gap-3">
             <span>Durée de séance proposée</span>
             <select v-model.number="settings.sessionMinutes" class="input">
               <option :value="10">10 min</option>
