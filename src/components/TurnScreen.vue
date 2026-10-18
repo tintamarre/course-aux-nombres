@@ -32,7 +32,8 @@ const props = defineProps<{
   character: string
   player: number
   crab: number
-  hazards: Record<Lane, number[]>
+  /** anemones, shared by both characters */
+  hazards: number[]
 }>()
 const emit = defineEmits<{
   choice: [choice: Side | null, rt: number]
@@ -229,7 +230,7 @@ async function hop(lane: Lane, to: number) {
 async function moveCharacter(lane: Lane) {
   busy.value = true
   const pos = lane === 'player' ? playerPos : crabPos
-  const m = move(pos.value, q(sideOf(lane)).value, props.hazards[lane])
+  const m = move(pos.value, q(sideOf(lane)).value, props.hazards)
   setOperation(lane, { a: m.from, sign: '+', b: m.landing - m.from, result: null })
   await hop(lane, m.landing)
   await finishMove(lane, m)
@@ -240,7 +241,7 @@ async function walkCounting(lane: Lane) {
   busy.value = true
   const pos = lane === 'player' ? playerPos : crabPos
   const from = pos.value
-  const m = move(from, q(sideOf(lane)).value, props.hazards[lane])
+  const m = move(from, q(sideOf(lane)).value, props.hazards)
   setOperation(lane, { a: from, sign: '+', b: m.landing - from, result: null })
   placed.value[lane] = []
   await countAloud(NUMBER_WORDS.slice(1, m.landing - from + 1), (k) => {
@@ -301,10 +302,10 @@ function endTurn() {
         :player="playerPos"
         :crab="crabPos"
         :hazards="hazards"
-        :placed="placed"
+        :placed="placed.player"
         :tappable="phase === 'move' && !busy"
         :shake="shake"
-        :hit="hit"
+        :hit="hit?.square ?? null"
         :crab-walking="phase === 'crab' && busy"
         @tap="tapSquare"
       />

@@ -31,14 +31,12 @@ const phase = ref<Phase>('turn')
 const round = ref(0)
 const unlocked = ref<Character | null>(null)
 
-function newTurn(): { problem: Problem; hazards: Record<Lane, number[]> } {
+function newTurn(): { problem: Problem; hazards: number[] } {
   const problem = generateProblem(selectDifficulty(), rng)
   const { race } = props.profile
   return {
     problem,
-    hazards: problem.level.hazards
-      ? { player: placeHazards(rng, [race.player]), crab: placeHazards(rng, [race.crab]) }
-      : { player: [], crab: [] },
+    hazards: problem.level.hazards ? placeHazards(rng, [race.player, race.crab]) : [],
   }
 }
 const turn = ref(newTurn())
