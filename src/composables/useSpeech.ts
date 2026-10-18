@@ -102,6 +102,11 @@ export async function preloadClips(): Promise<void> {
 }
 
 let current: { src: AudioBufferSourceNode; gain: GainNode } | null = null
+/**
+ * The clips peak at full scale (0 dB): played at 1 with a sound effect on top (a piece, a hop),
+ * the sum goes over 1 and clips, which is heard as a scratch. 0.7 leaves room for the effects.
+ */
+const VOICE_GAIN = 0.7
 
 function playBuffer(buf: AudioBuffer): Promise<void> {
   const ctx = getAudioContext()
@@ -110,7 +115,7 @@ function playBuffer(buf: AudioBuffer): Promise<void> {
     if (ctx.state === 'suspended') void ctx.resume()
     const src = ctx.createBufferSource()
     const gain = ctx.createGain()
-    gain.gain.value = muted ? 0 : 1
+    gain.gain.value = muted ? 0 : VOICE_GAIN
     src.buffer = buf
     src.connect(gain).connect(ctx.destination)
     let done = false
