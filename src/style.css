@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Baloo 2', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  background: #0b3954;
+  overscroll-behavior: none;
+}
+
+/* calm underwater background: static on purpose, nothing moves behind the task */
+.sea {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 255, 255, 0.18), transparent 70%),
+    linear-gradient(180deg, #1b7a9b 0%, #10587a 55%, #0b3954 100%);
+}
+
+.title {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.number {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.btn {
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0b3954;
+  font-weight: 800;
+  font-size: 1.25rem;
+  padding: 0.5rem 1.5rem;
+  transition: transform 0.15s ease;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn-primary {
+  background: #f8c73c;
+  color: #4a3200;
+  font-size: 1.75rem;
+  padding: 0.75rem 3rem;
+  box-shadow: 0 6px 0 #c98a1b, 0 12px 24px rgba(0, 0, 0, 0.25);
+}
+
+.bob {
+  animation: bob 3s ease-in-out infinite;
+}
+@keyframes bob {
+  50% { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
