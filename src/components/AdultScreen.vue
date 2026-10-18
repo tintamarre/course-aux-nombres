@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /** Space for the speech therapist, teacher or parent: follow-up, profiles, settings, about. */
 import { computed, ref } from 'vue'
-import { PRIORS, type PriorName } from '../engine/adaptive'
+import { PRIORS, PROGRESSIONS, type PriorName, type ProgressionName } from '../engine/adaptive'
 import { LEVELS } from '../engine/levels'
 import { knowledgeOf, trialsToCsv, useProfiles } from '../composables/useProfiles'
 import { useSettings } from '../composables/useSettings'
@@ -12,7 +12,7 @@ import KnowledgeMap from './KnowledgeMap.vue'
 import TrendChart from './TrendChart.vue'
 
 const emit = defineEmits<{ close: [] }>()
-const { profiles, current, create, select, remove, resetKnowledge } = useProfiles()
+const { profiles, current, create, select, remove, resetKnowledge, setProgression } = useProfiles()
 const settings = useSettings()
 
 const tab = ref<'suivi' | 'profils' | 'reglages' | 'apropos'>(current.value ? 'suivi' : 'profils')
@@ -27,6 +27,11 @@ const priorLabels: Record<PriorName, string> = {
   aucun: 'Aucun (version 2006 : tout part du hasard)',
   debutant: 'Débutant (cube 0–0,2 réussi)',
   modere: 'Modéré (cube 0–0,4 réussi, recommandé)',
+}
+
+const progressionLabels: Record<ProgressionName, string> = {
+  article: 'Progression de l’article',
+  rapide: 'Progression rapide',
 }
 
 const newName = ref('')
@@ -201,12 +206,24 @@ function confirmRemove(id: string, name: string) {
         <section class="card">
           <h3 class="mb-2 font-bold">Profils</h3>
           <p v-if="!profiles.length" class="text-sm opacity-70">Aucun profil.</p>
+          <p class="mb-2 text-sm opacity-70">
+            La progression rapide fait monter la difficulté plus vite après chaque réponse (environ deux fois plus vite pour atteindre le niveau 9 en simulation),
+            en gardant une réussite proche de 75 %. Elle s'écarte des paramètres de l'article ; on peut la changer à tout moment sans perdre ce que l'algorithme a appris.
+          </p>
           <ul class="divide-y divide-black/5">
             <li v-for="p in profiles" :key="p.id" class="flex flex-wrap items-center gap-3 py-2">
               <input type="radio" :checked="current?.id === p.id" :aria-label="`choisir ${p.name}`" @change="select(p.id)" />
               <span class="font-semibold">{{ p.name }}</span>
               <span class="text-sm opacity-60">{{ p.trials.length }} essais · {{ p.fish }} poissons · départ {{ p.prior }}</span>
-              <button type="button" class="btn-sm ml-auto" @click="confirmRemove(p.id, p.name)">Supprimer</button>
+              <select
+                class="input ml-auto py-1 text-sm"
+                :value="p.progression ?? 'article'"
+                :aria-label="`progression de ${p.name}`"
+                @change="setProgression(p, ($event.target as HTMLSelectElement).value as ProgressionName)"
+              >
+                <option v-for="(_, k) in PROGRESSIONS" :key="k" :value="k">{{ progressionLabels[k] }}</option>
+              </select>
+              <button type="button" class="btn-sm" @click="confirmRemove(p.id, p.name)">Supprimer</button>
             </li>
           </ul>
         </section>

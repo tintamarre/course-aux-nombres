@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { KnowledgeSpace, PAPER_PARAMS, PRIORS } from './adaptive'
+import { KnowledgeSpace, PAPER_PARAMS, PRIORS, PROGRESSIONS } from './adaptive'
 import { BOARD_LENGTH, HAZARD_PENALTY, MAX_BOARD_LENGTH, boardLength, hazardCount, hazardKind, move, placeHazards } from './board'
 import { layoutDots } from './dots'
 import { LEVELS, levelFromDifficulty } from './levels'
@@ -154,6 +154,31 @@ describe('board', () => {
 })
 
 describe('adaptive algorithm', () => {
+  it('climbs faster in complexity with the fast progression, still near the 75 % target', () => {
+    // a child whose success drops with complexity and with closeness of the numbers
+    const run = (params: typeof PROGRESSIONS.article) => {
+      let complexity = 0
+      let success = 0
+      for (let seed = 1; seed <= 20; seed++) {
+        const rng = mulberry32(seed)
+        const ks = new KnowledgeSpace(params, PRIORS.modere)
+        for (let i = 0; i < 64; i++) {
+          const d = ks.select(rng)
+          const ok = rng() < 0.97 - 0.35 * d[2] - 0.25 * d[1]
+          ks.update(d, ok)
+          if (i >= 44) {
+            complexity += d[2]
+            success += +ok
+          }
+        }
+      }
+      return { complexity: complexity / 400, success: success / 400 }
+    }
+    const article = run(PROGRESSIONS.article)
+    const fast = run(PROGRESSIONS.rapide)
+    expect(fast.complexity).toBeGreaterThan(article.complexity)
+    expect(fast.success).toBeGreaterThan(0.65)
+  })
   it('initialises K to chance or to the prior cube', () => {
     expect(new KnowledgeSpace(PAPER_PARAMS, PRIORS.aucun).get([1, 1, 1])).toBe(0.5)
     const k = new KnowledgeSpace(PAPER_PARAMS, PRIORS.modere)

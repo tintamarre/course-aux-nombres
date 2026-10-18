@@ -17,6 +17,8 @@ Par défaut, l'algorithme part d'un niveau *modéré* : il suppose que l'enfant 
 - *Débutant* : pour un jeune enfant ou des difficultés importantes ;
 - *Aucun* : comportement de la version 2006, où tout part du hasard (plus long à calibrer).
 
+Chaque profil a aussi une **progression** : celle de l'article (par défaut) ou une progression rapide, qui fait monter la difficulté environ deux fois plus vite tout en visant toujours 75 % de réussite. Elle se change à tout moment dans l'onglet Profils, sans perdre ce que l'algorithme a appris. La progression rapide convient à un enfant à l'aise ou pour découvrir le jeu ; celle de l'article reste la référence.
+
 Dans l'onglet Suivi, « Réinitialiser l'algorithme » repart du point de départ du profil.
 
 Les données restent **dans le navigateur de l'appareil** : rien n'est envoyé sur internet. Effacer les données du navigateur efface donc les profils. Pensez à exporter le suivi en CSV si vous souhaitez le conserver.

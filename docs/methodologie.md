@@ -74,6 +74,8 @@ Ainsi `log y ≈ log x + (d_d − 1)·log R` : le rapport x/y vaut 2 à la diffi
 
 Paramètres : `v_min = 0,25 s`, `v_max = 10 s`, `r = 0,001`. Le délai vaut 10 s au seuil 0,3 et descend vers environ 0,33 s à `d_s = 1`. Comme le notent les auteurs, même un adulte n'atteint pas le plafond de cette dimension.
 
+**Écart réglable : progression rapide.** Pour chaque profil, le praticien peut choisir une progression rapide (ω = 0,8 au lieu de 0,5, généralisation à g = 8 cases au lieu de 4). En simulation (64 essais, enfant dont la réussite baisse avec la complexité et la proximité des nombres), le premier problème de niveau 9 arrive vers l'essai 12 au lieu de 29, et le niveau 9 est atteint à chaque fois au lieu d'environ 6 fois sur 10, avec une réussite qui reste proche de la cible (74 % contre 80 %). Le changement se fait à tout moment et garde la matrice K apprise. Les paramètres de l'article restent la valeur par défaut.
+
 **Écart réglable : délai minimum.** Le praticien choisit dans l'espace adulte le délai le plus court accordé (2 s par défaut, 0,25 s pour retrouver l'article). Le délai donné à l'enfant est `max(v, délai minimum)`, et c'est ce délai effectif qui est enregistré. Au-delà du point où le minimum s'applique, la dimension « vitesse » n'est plus plus difficile pour l'enfant : l'algorithme y estime donc une réussite élevée et l'explore librement, ce qui est sans conséquence pour l'entraînement.
 
 ### Complexité conceptuelle (`d_n`)

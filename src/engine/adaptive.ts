@@ -52,6 +52,18 @@ export const PAPER_PARAMS: AdaptiveParams = {
 }
 
 /**
+ * Pace of progression, chosen per profile. "article" keeps the paper's values. "rapide" learns
+ * faster from each answer (ω 0.8) and generalises it further (g 8 cells): in simulation a child
+ * reaches level 9 about twice as early, while the success rate stays close to the 75 % target.
+ */
+export const PROGRESSIONS = {
+  article: PAPER_PARAMS,
+  rapide: { ...PAPER_PARAMS, omega: 0.8, g: 8 },
+} as const satisfies Record<string, AdaptiveParams>
+
+export type ProgressionName = keyof typeof PROGRESSIONS
+
+/**
  * Prior knowledge. The paper's first version started from zero knowledge (K = c everywhere);
  * the revised version "can be preprogrammed to assume a moderate amount of prior knowledge
  * (e.g. a cube of high probability of success ranging from 0 to 0.4 on all dimensions)".

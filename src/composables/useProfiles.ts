@@ -3,7 +3,7 @@
  * A profile keeps the knowledge matrix K, so the game resumes at the right difficulty.
  */
 import { computed, markRaw, ref, toRaw } from 'vue'
-import { KnowledgeSpace, PAPER_PARAMS, PRIORS, type PriorName } from '../engine/adaptive'
+import { KnowledgeSpace, PRIORS, PROGRESSIONS, type PriorName, type ProgressionName } from '../engine/adaptive'
 import { loadJson, removeKey, saveJson } from './useStorage'
 import type { CharacterId } from '../data/characters'
 
@@ -35,6 +35,8 @@ export interface Profile {
   id: string
   name: string
   prior: PriorName
+  /** pace of the adaptive algorithm (absent on older profiles: "article") */
+  progression?: ProgressionName
   createdAt: number
   K: number[]
   history: number[]
@@ -89,7 +91,7 @@ export function saveProfile(p: Profile): void {
 if (typeof window !== 'undefined') window.addEventListener('pagehide', flushProfiles)
 
 export function knowledgeOf(p: Profile): KnowledgeSpace {
-  return new KnowledgeSpace(PAPER_PARAMS, PRIORS[p.prior], p.K.length ? p.K : undefined, p.history)
+  return new KnowledgeSpace(PROGRESSIONS[p.progression ?? 'article'], PRIORS[p.prior], p.K.length ? p.K : undefined, p.history)
 }
 
 export function storeKnowledge(p: Profile, ks: KnowledgeSpace): void {
@@ -146,7 +148,13 @@ export function useProfiles() {
     saveProfile(p)
   }
 
-  return { profiles, current, create, select, remove, resetKnowledge }
+  /** Change the pace of progression; what the algorithm learnt so far is kept. */
+  function setProgression(p: Profile, progression: ProgressionName): void {
+    p.progression = progression
+    saveProfile(p)
+  }
+
+  return { profiles, current, create, select, remove, resetKnowledge, setProgression }
 }
 
 export function trialsToCsv(p: Profile): string {
