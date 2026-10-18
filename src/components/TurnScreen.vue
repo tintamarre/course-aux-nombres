@@ -202,12 +202,51 @@ function revealCoins(s: Side) {
   return { count: Math.max(0, q(s).value - placedCount.value[lane]), added: 0, removed: 0 }
 }
 
-/* ---------- 3. the child places the pieces ---------- */
+/* ---------- 3. counting the pieces onto the track ----------
+ * Counting follows the paper: the pieces are counted (« un, deux, trois, quatre »), each piece
+ * flies from the treasure to its square and shows the number just said, then the total is said
+ * again (cardinal principle: « Quatre ! ») and the arrival square is announced (« Case onze. »).
+ */
+let lastFlight: Promise<void> = Promise.resolve()
+
+/** Animate one gold piece from a treasure to a square of the track (one-to-one correspondence made visible). */
+function fly(from: Side, square: number): Promise<void> {
+  const src = document.querySelector(`[data-side="${from}"] .coin-rows`)?.getBoundingClientRect()
+  const dst = document.querySelector(`svg.track [data-sq="${square}"]`)?.getBoundingClientRect()
+  if (!src || !dst || matchMedia('(prefers-reduced-motion: reduce)').matches) return Promise.resolve()
+  const size = Math.max(24, dst.width * 0.7)
+  const el = document.createElement('div')
+  el.className = 'flying-coin'
+  el.style.cssText = `position:fixed;left:0;top:0;width:${size}px;height:${size}px;z-index:40;pointer-events:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4 0 18%,#f8c73c 19% 62%,#e9a91f 63%)`
+  document.body.appendChild(el)
+  const x0 = src.left + src.width / 2 - size / 2
+  const y0 = src.top + src.height / 2 - size / 2
+  const x1 = dst.left + dst.width / 2 - size / 2
+  const y1 = dst.top + dst.height * 0.62 - size / 2
+  const anim = el.animate(
+    [
+      { transform: `translate(${x0}px, ${y0}px) scale(1.3)` },
+      { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 40}px) scale(1.1)`, offset: 0.5 },
+      { transform: `translate(${x1}px, ${y1}px) scale(1)` },
+    ],
+    { duration: 380, easing: 'ease-in-out' },
+  )
+  return anim.finished.then(
+    () => el.remove(),
+    () => el.remove(),
+  )
+}
+
+/** One piece leaves the treasure (immediately) and lands on the next square (after its flight). */
 function placeOne(lane: Lane) {
   placedCount.value[lane]++
+  const k = placedCount.value[lane]
   const from = lane === 'player' ? props.player : props.crab
-  placed.value[lane].push(from + placedCount.value[lane])
-  sounds.coin(placedCount.value[lane])
+  sounds.coin(k)
+  const flight = fly(sideOf(lane), from + k).then(() => {
+    if (alive) placed.value[lane].push(from + k)
+  })
+  lastFlight = lastFlight.then(() => flight)
 }
 
 function tapTreasure(s: Side) {
@@ -218,13 +257,21 @@ function tapTreasure(s: Side) {
   if (phase.value !== 'move' || busy.value || s !== choice.value || piecesLeft('player') <= 0) return
   placeOne('player')
   sayNow(numberWord(placedCount.value.player))
-  if (piecesLeft('player') === 0) void moveCharacter('player')
+  if (piecesLeft('player') === 0) {
+    busy.value = true
+    void lastFlight.then(() => {
+      if (alive) void moveCharacter('player')
+    })
+  }
 }
 
-/** Arrival-square shortcut and automatic mode: the character walks as the numbers are counted. */
+/** Arrival-square shortcut and automatic mode: the pieces are counted onto the track by the computer. */
 async function placeAll() {
   busy.value = true
-  await walkCounting('player')
+  placed.value.player = []
+  placedCount.value.player = 0
+  await countPieces('player')
+  if (alive) await moveCharacter('player')
 }
 
 function tapSquare(sq: number) {
@@ -236,6 +283,12 @@ function tapSquare(sq: number) {
   }
 }
 
+/** Count the pieces aloud, one flight per number. */
+async function countPieces(lane: Lane) {
+  await countAloud(NUMBER_WORDS.slice(1, piecesFor(lane) + 1), () => placeOne(lane), lane === 'crab' ? 1.3 : 1.15)
+  await lastFlight
+}
+
 /* ---------- moving ---------- */
 async function hop(lane: Lane, to: number) {
   const pos = lane === 'player' ? playerPos : crabPos
@@ -244,49 +297,38 @@ async function hop(lane: Lane, to: number) {
     pos.value += step
     placed.value[lane] = placed.value[lane].filter((x) => x !== pos.value)
     sounds.hop()
-    await wait(90)
+    await wait(140)
   }
 }
 
-/** After the child placed the pieces one by one: the character hops along them. */
+/** The pieces are on the track: say the total, walk along them, announce the arrival square. */
 async function moveCharacter(lane: Lane) {
   busy.value = true
   const pos = lane === 'player' ? playerPos : crabPos
   const m = move(pos.value, q(sideOf(lane)).value, props.hazards)
-  setOperation(lane, { a: m.from, sign: '+', b: m.landing - m.from, result: null })
+  const n = m.landing - m.from
+  setOperation(lane, { a: m.from, sign: '+', b: n, result: null })
+  await say(`${numberWord(n)} !`)
+  if (!alive) return
   await hop(lane, m.landing)
-  await finishMove(lane, m)
-}
-
-/** Count aloud while stepping forward, one square per number (crab, shortcut, automatic mode). */
-async function walkCounting(lane: Lane) {
-  busy.value = true
-  const pos = lane === 'player' ? playerPos : crabPos
-  const from = pos.value
-  const m = move(from, q(sideOf(lane)).value, props.hazards)
-  setOperation(lane, { a: from, sign: '+', b: m.landing - from, result: null })
-  placed.value[lane] = []
-  await countAloud(NUMBER_WORDS.slice(1, m.landing - from + 1), (k) => {
-    pos.value = from + k
-    placedCount.value[lane] = k
-    sounds.coin(k)
-  }, lane === 'crab' ? 1.4 : 1.25)
+  setOperation(lane, { a: m.from, sign: '+', b: n, result: m.landing })
+  if (!m.hitHazard) await say(m.finished ? 'Arrivé !' : `Case ${numberWord(m.landing)}.`)
   await finishMove(lane, m)
 }
 
 async function finishMove(lane: Lane, m: ReturnType<typeof move>) {
   placed.value[lane] = []
-  setOperation(lane, { a: m.from, sign: '+', b: m.landing - m.from, result: m.landing })
   if (m.hitHazard && alive) {
-    await wait(500)
+    await wait(300)
     setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: null })
     hit.value = { lane, square: m.landing }
     sounds.ouch()
     message.value = lane === 'player' ? `Aïe, une anémone ! Tu recules de ${HAZARD_PENALTY}.` : `Le crabe tombe sur une anémone !`
-    await say(message.value)
+    await say(lane === 'player' ? `Aïe, une anémone ! Tu recules de ${numberWord(HAZARD_PENALTY)}.` : message.value)
     await hop(lane, m.to)
     setOperation(lane, { a: m.landing, sign: '−', b: m.landing - m.to, result: m.to })
     hit.value = null
+    await say(`Case ${numberWord(m.to)}.`)
   }
   if (!alive) return
   if (m.finished) {
@@ -303,7 +345,10 @@ async function finishMove(lane: Lane, m: ReturnType<typeof move>) {
 async function crabTurn() {
   phase.value = 'crab'
   message.value = ''
-  await walkCounting('crab')
+  busy.value = true
+  await wait(300)
+  await countPieces('crab')
+  if (alive) await moveCharacter('crab')
 }
 
 /** The crab's remark is short and heard before the next treasures (the next screen cuts any leftover speech). */
@@ -327,7 +372,7 @@ async function endTurn() {
         :player="playerPos"
         :crab="crabPos"
         :hazards="hazards"
-        :placed="placed.player"
+        :placed="phase === 'crab' ? placed.crab : placed.player"
         :tappable="phase === 'move' && !busy"
         :shake="shake"
         :hit="hit?.square ?? null"
@@ -368,6 +413,7 @@ async function endTurn() {
       <button
         v-for="s in sides"
         :key="s"
+        :data-side="s"
         :style="{ gridColumn: s === 'left' ? 1 : 3, gridRow: 1 }"
         type="button"
         class="treasure relative flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-[2rem] p-[2vh]"
@@ -413,6 +459,10 @@ async function endTurn() {
           </div>
           <CoinRows v-bind="revealCoins(s)" :waiting="phase === 'move' && choice === s && !busy" class="mt-[2vh] h-[19vh]" />
           <span class="owner" :class="choice === s ? 'owner-player' : 'owner-crab'">{{ choice === s ? 'à toi' : 'au crabe' }}</span>
+          <!-- the larger treasure is marked, so that a wrong choice is visibly corrected -->
+          <svg v-if="s === problem.larger && opStep !== 1 && opStep !== 2" viewBox="0 0 24 24" class="larger-star absolute top-[1.5vh] right-[1.5vh] h-[6vh] w-[6vh]" aria-label="le plus grand">
+            <path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" fill="#f8c73c" stroke="#c98a1b" stroke-width="1.2" stroke-linejoin="round" />
+          </svg>
         </template>
       </button>
     </div>
@@ -447,6 +497,12 @@ async function endTurn() {
 .op-crab {
   background: #e4572e;
   color: #fff;
+}
+.larger-star {
+  animation: star-in 0.5s ease-out both;
+}
+@keyframes star-in {
+  from { transform: scale(0) rotate(-40deg); opacity: 0; }
 }
 .owner {
   position: absolute;

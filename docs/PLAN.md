@@ -21,6 +21,7 @@
 - [x] Choix de l'animal à la création du profil ; les autres à gagner, visibles sur l'accueil avec cadenas
 - [x] Une seule piste commune aux deux personnages (enfant au-dessus, crabe en dessous), anémones communes
 - [x] Minuteur de séance : fine ligne en haut de l'écran, sans chiffre
+- [x] Comptage des pièces (1, 2, 3…) avec pièces qui volent du trésor vers leur case, total redit et case d'arrivée annoncée ; étoile sur le plus grand trésor
 - [x] Meilleure prononciation : choix automatique de la voix la plus naturelle, choix manuel avec « Écouter », aide pour installer une voix améliorée
 - [x] Retour après le choix lent et descriptif (calcul dit en entier, comparaison expliquée, durée minimale)
 - [x] Son sans grésillement (sons pré-calculés, sortie audio maintenue éveillée), tours plus rapides, enregistrement différé du profil

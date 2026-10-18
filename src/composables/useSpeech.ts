@@ -147,13 +147,18 @@ export function say(text: string, rate = 1): Promise<void> {
 }
 
 /**
- * Counting a piece the child just touched: said right away, cutting the previous number if the
- * child taps faster than the voice, so that the voice never lags behind the pieces.
+ * Counting a piece the child just touched. Nothing is cut (cutting a sound mid-word makes an
+ * audible click): the word being said ends normally, and if the child tapped several pieces in
+ * the meantime only the latest number is said, so the voice stays at most one word behind.
  */
+let latestCount = 0
 export function sayNow(text: string, rate = 1.1): void {
   if (!settings.voice || !speechAvailable()) return
-  hush()
-  void enqueue(() => utterance(text, rate), 2500)
+  const token = ++latestCount
+  const gen = generation
+  const run = () => (gen === generation && token === latestCount ? speakNow(() => utterance(text, rate), 2500) : Promise.resolve())
+  const p = chain.then(run)
+  chain = p.catch(() => undefined)
 }
 
 /**
@@ -214,7 +219,10 @@ export async function countAloud(words: string[], onTick: (k: number) => void, r
 export function hush(): void {
   generation++
   chain = Promise.resolve()
-  if (speechAvailable()) speechSynthesis.cancel()
-  lastCancel = performance.now()
+  // cancel only when something is actually being said: a needless cancel can click on some systems
+  if (speechAvailable() && (speechSynthesis.speaking || speechSynthesis.pending)) {
+    speechSynthesis.cancel()
+    lastCancel = performance.now()
+  }
   live.clear()
 }

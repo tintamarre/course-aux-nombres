@@ -3,6 +3,8 @@
  * The race track, always visible above the treasures: ONE numbered track shared by both
  * characters, as on the original board. The child's animal stands above the squares, the crab
  * below, so both stay visible even on the same square. Anemones are shared too.
+ * Each placed piece shows the number spoken when it was placed (1, 2, 3…); the square numbers stay
+ * small so that the counted number is the one that stands out.
  */
 import { BOARD_LENGTH } from '../engine/board'
 import CharacterSprite from './CharacterSprite.vue'
@@ -16,7 +18,7 @@ defineProps<{
   player: number
   crab: number
   hazards: number[]
-  /** squares holding one of the child's gold pieces */
+  /** squares holding a gold piece, in placement order: each piece shows its count (1, 2, 3…) */
   placed: number[]
   /** squares can be tapped (arrival-square shortcut) */
   tappable: boolean
@@ -57,11 +59,12 @@ const squares = Array.from({ length: BOARD_LENGTH }, (_, k) => k + 1)
         :width="CELL - 4"
         :height="CELL"
         rx="10"
+:data-sq="sq"
         :fill="sq === BOARD_LENGTH ? '#ffe08a' : '#f3dfae'"
         stroke="#c9a96b"
         stroke-width="2"
       />
-      <text :x="cx(sq)" :y="SQ_Y + 17" text-anchor="middle" class="square-number">{{ sq }}</text>
+      <text :x="cx(sq)" :y="SQ_Y + 13" text-anchor="middle" class="square-number">{{ sq }}</text>
       <!-- finish flag -->
       <g v-if="sq === BOARD_LENGTH" :transform="`translate(${cx(sq) + 10} ${SQ_Y - 34})`">
         <path d="M0 0 V34" stroke="#5b4a2f" stroke-width="3" />
@@ -77,9 +80,10 @@ const squares = Array.from({ length: BOARD_LENGTH }, (_, k) => k + 1)
           <path d="M-15 4 Q-13 -5 0 -5 Q13 -5 15 4 Z" fill="#d94680" />
         </g>
       </g>
-      <!-- gold piece, under the square number -->
-      <g v-if="placed.includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL - 15}px` }">
-        <CoinIcon :x="cx(sq)" :y="SQ_Y + CELL - 15" :r="12" />
+      <!-- gold piece with the count spoken when it was placed -->
+      <g v-if="placed.includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL - 19}px` }">
+        <CoinIcon :x="cx(sq)" :y="SQ_Y + CELL - 19" :r="16" />
+        <text :x="cx(sq)" :y="SQ_Y + CELL - 13" text-anchor="middle" class="coin-count">{{ placed.indexOf(sq) + 1 }}</text>
       </g>
     </g>
 
@@ -102,9 +106,15 @@ const squares = Array.from({ length: BOARD_LENGTH }, (_, k) => k + 1)
   pointer-events: none;
 }
 .square-number {
+  font-weight: 700;
+  font-size: 12px;
+  fill: #8a6a34;
+  pointer-events: none;
+}
+.coin-count {
   font-weight: 800;
-  font-size: 16px;
-  fill: #7a5a24;
+  font-size: 17px;
+  fill: #5a3a00;
   pointer-events: none;
 }
 .coin-pop {

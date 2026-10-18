@@ -27,7 +27,7 @@ const coins = computed(() =>
 </script>
 
 <template>
-  <svg :viewBox="`0 0 ${4 * STEP + 2 * R + 4} ${STEP + 2 * R + 4}`" class="h-full w-auto max-w-[260px]">
+  <svg :viewBox="`0 0 ${4 * STEP + 2 * R + 4} ${STEP + 2 * R + 4}`" class="coin-rows h-full w-auto max-w-[260px]">
     <g
       v-for="(c, k) in coins"
       :key="k"
