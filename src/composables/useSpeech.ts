@@ -51,10 +51,24 @@ function utterance(text: string, rate: number): SpeechSynthesisUtterance {
   u.lang = voice?.lang ?? 'fr-FR'
   if (voice) u.voice = voice
   u.rate = Math.min(2, settings.voiceRate * rate)
+  // dev only: ?mute keeps the real speech queue (events, timings) but silent, for automated play tests
+  if (import.meta.env.DEV && new URLSearchParams(location.search).has('mute')) u.volume = 0
   return u
 }
 
-function speak(u: SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charIndex: number) => void): Promise<void> {
+/**
+ * All speech goes through ONE ordered queue: an utterance is handed to the engine only when the
+ * previous one is over, and its safety timeout starts at that moment (not when it was queued).
+ * Without this, sentences piled up in the engine, the game believed they were over while they had
+ * not even started, and the voice drifted behind the screen (crab jumping to its square, reward
+ * sentence heard during the next turn…). `hush()` empties the queue.
+ */
+let generation = 0
+let chain: Promise<void> = Promise.resolve()
+/** Safari may ignore an utterance spoken right after cancel(): such a speak is delayed a little */
+let lastCancel = 0
+
+function speakNow(u: SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charIndex: number) => void): Promise<void> {
   return new Promise((resolve) => {
     let done = false
     const finish = () => {
@@ -67,22 +81,38 @@ function speak(u: SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charInd
     u.onerror = finish
     if (onBoundary) u.onboundary = (e) => onBoundary(e.charIndex)
     live.add(u)
-    // safety net when onend never comes (some engines)
+    // safety net when onend never comes (some engines), counted from now
     setTimeout(finish, maxMs)
-    speechSynthesis.speak(u)
+    // iOS can leave the engine paused after the app went to the background
+    if (speechSynthesis.paused) speechSynthesis.resume()
+    const sinceCancel = performance.now() - lastCancel
+    if (sinceCancel < 80) setTimeout(() => !done && speechSynthesis.speak(u), 80 - sinceCancel)
+    else speechSynthesis.speak(u)
   })
 }
 
-/** Speak a sentence and resolve when it is over (or after a short delay when speech is off). */
-export function say(text: string, rate = 1): Promise<void> {
-  if (!settings.voice || !speechAvailable()) return wait(Math.min(1200, 200 + text.length * 35))
-  return speak(utterance(text, rate), 1200 + (text.length * 90) / (settings.voiceRate * rate))
+function enqueue(make: () => SpeechSynthesisUtterance, maxMs: number, onBoundary?: (charIndex: number) => void): Promise<void> {
+  const gen = generation
+  const run = () => (gen === generation ? speakNow(make(), maxMs, onBoundary) : Promise.resolve())
+  const p = chain.then(run)
+  chain = p.catch(() => undefined)
+  return p
 }
 
-/** Fire-and-forget, used for counting taps: does not wait, does not cancel what is being said. */
+/** Speak a sentence after the ones already queued; resolves when it is over (or after a short delay when speech is off). */
+export function say(text: string, rate = 1): Promise<void> {
+  if (!settings.voice || !speechAvailable()) return wait(Math.min(1200, 200 + text.length * 35))
+  return enqueue(() => utterance(text, rate), 1500 + (text.length * 90) / (settings.voiceRate * rate))
+}
+
+/**
+ * Counting a piece the child just touched: said right away, cutting the previous number if the
+ * child taps faster than the voice, so that the voice never lags behind the pieces.
+ */
 export function sayNow(text: string, rate = 1.1): void {
   if (!settings.voice || !speechAvailable()) return
-  void speak(utterance(text, rate), 3000)
+  hush()
+  void enqueue(() => utterance(text, rate), 2500)
 }
 
 /**
@@ -96,6 +126,7 @@ export async function countAloud(words: string[], onTick: (k: number) => void, r
     while (next <= upTo && next < words.length) onTick(++next)
   }
   const step = 420 / (settings.voiceRate * rate)
+  if (!words.length) return
   if (!settings.voice || !speechAvailable()) {
     for (let k = 0; k < words.length; k++) {
       tick(k)
@@ -106,9 +137,12 @@ export async function countAloud(words: string[], onTick: (k: number) => void, r
   const text = words.join(', ')
   const starts = words.map((_, k) => words.slice(0, k).join(', ').length + (k ? 2 : 0))
   let boundaries = false
+  let started = false
   let timer: ReturnType<typeof setInterval> | undefined
-  const u = utterance(text, rate)
-  u.onstart = () => {
+  let startGuard: ReturnType<typeof setTimeout> | undefined
+  const cadence = () => {
+    if (started) return
+    started = true
     tick(0)
     // fallback cadence if no boundary event arrives
     let k = 0
@@ -116,15 +150,30 @@ export async function countAloud(words: string[], onTick: (k: number) => void, r
       if (!boundaries) tick(++k)
     }, step)
   }
-  await speak(u, 1200 + words.length * 700, (charIndex) => {
-    boundaries = true
-    tick(starts.filter((s) => s <= charIndex).length - 1)
-  })
+  await enqueue(
+    () => {
+      const u = utterance(text, rate)
+      u.onstart = cadence
+      // some engines never fire onstart: start the cadence anyway
+      startGuard = setTimeout(cadence, 600)
+      return u
+    },
+    1500 + words.length * 700,
+    (charIndex) => {
+      boundaries = true
+      tick(starts.filter((x) => x <= charIndex).length - 1)
+    },
+  )
+  clearTimeout(startGuard)
   clearInterval(timer)
   tick(words.length)
 }
 
+/** Stop speaking and drop everything still queued. */
 export function hush(): void {
+  generation++
+  chain = Promise.resolve()
   if (speechAvailable()) speechSynthesis.cancel()
+  lastCancel = performance.now()
   live.clear()
 }

@@ -21,7 +21,10 @@ npm install
 npm run dev       # http://localhost:5173/course-aux-nombres/
 npm test          # tests du moteur (vitest)
 npm run build     # type-check + build dans dist/
+npm run test:flow # avec `npm run dev` lancé : joue automatiquement ~90 s dans Chrome headless, signale blocages et erreurs
 ```
+
+`npm run test:flow -- 120 d=0.5,0.3,0.9` joue 120 s en forçant une difficulté (ici opérations, anémones et délai).
 
 En développement, `?d=vitesse,distance,complexite` force la difficulté pour prévisualiser un niveau, par exemple `?d=0.5,0.2,0.75` pour une addition avec délai.
 

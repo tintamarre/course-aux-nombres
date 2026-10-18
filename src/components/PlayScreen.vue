@@ -82,7 +82,7 @@ function onChoice(choice: Side | null, rt: number) {
   saveAll()
 }
 
-async function onTurnDone(player: number, crab: number, winner: Lane | null) {
+function onTurnDone(player: number, crab: number, winner: Lane | null) {
   const { profile } = props
   profile.race = winner ? { player: 0, crab: 0 } : { player, crab }
   if (winner === 'player') {
@@ -93,14 +93,16 @@ async function onTurnDone(player: number, crab: number, winner: Lane | null) {
     saveAll()
     phase.value = 'reward'
     sounds.reward()
-    await say('Bravo ! Tu as gagné la course ! Voici un poisson pour ton aquarium.')
-    if (unlocked.value) await say(`Tu peux maintenant jouer avec ${unlocked.value.article} !`)
+    const gift = unlocked.value
+    // both sentences are queued at once, so "Continuer" (which hushes) cancels them together
+    void say('Bravo ! Tu as gagné la course ! Voici un poisson pour ton aquarium.')
+    if (gift) void say(`Tu peux maintenant jouer avec ${gift.article} !`)
     return
   }
   saveAll()
   if (winner === 'crab') {
     phase.value = 'crabWon'
-    await say('Le crabe a gagné cette course. On recommence !')
+    void say('Le crabe a gagné cette course. On recommence !')
     return
   }
   next()
