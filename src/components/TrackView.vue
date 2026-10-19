@@ -88,8 +88,10 @@ const bubbles = computed(() =>
     if (!op) return []
     const pos = lane === 'player' ? props.player : props.crab
     const w = bubbleText(op).length * 13 + 22
-    const right = cx(pos) + 30 + w <= (lastShown.value - 0.5) * CELL
-    const x = right ? cx(pos) + 30 : cx(pos) - 30 - w
+    // half the token width (animal 76, crab 60) plus room for the tail of the bubble
+    const gap = (lane === 'player' ? 38 : 30) + 16
+    const right = cx(pos) + gap + w <= (lastShown.value - 0.5) * CELL
+    const x = right ? cx(pos) + gap : cx(pos) - gap - w
     const y = lane === 'player' ? SQ_Y - 52 : SQ_Y + CELL_H + 10
     return [{ lane, op, w, x, y, right }]
   }),
