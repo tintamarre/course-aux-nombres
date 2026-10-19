@@ -33,9 +33,9 @@ Dans l'étude de 2006 : **30 minutes par jour, 4 jours par semaine, pendant 5 se
 
 Les auteurs ont observé une lassitude chez certains enfants après une dizaine d'heures. Des séances courtes et régulières valent mieux que de longues séances.
 
-## Le crabe qui court vers la clé
+## La clé et son anneau
 
-Le temps laissé pour répondre change d'un essai à l'autre : c'est la dimension « vitesse » de l'algorithme, qui alterne des essais lents et rapides pour rester autour de 75 % de réussite. Parfois il n'y a pas de délai du tout. Dans Réglages, « Temps minimum pour répondre » fixe le délai le plus court (2 s par défaut) ; « 0,25 s » correspond à l'article original.
+Quand il y a un délai, une clé apparaît entre les deux trésors avec un anneau doré qui se vide comme une horloge. S'il se vide avant que l'enfant ait choisi, la clé s'envole vers le crabe, qui prend le plus grand trésor. Le temps laissé pour répondre change d'un essai à l'autre : c'est la dimension « vitesse » de l'algorithme, qui alterne des essais lents et rapides pour rester autour de 75 % de réussite. Parfois il n'y a pas de délai du tout. Dans Réglages, « Temps minimum pour répondre » fixe le délai le plus court (2 s par défaut) ; « 0,25 s » correspond à l'article original.
 
 ## Ce que fait l'enfant
 

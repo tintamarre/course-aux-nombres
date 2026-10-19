@@ -11,12 +11,15 @@ let readyPromptGiven = false
  * 0. ready (first round, or after a race): a big start button; the treasures (and the crab's
  *    deadline) only appear when the child touches it, so a round never starts while the child
  *    is looking away.
- * 1. choose: the child touches the larger treasure (before the crab reaches the key when there is
- *    a deadline). What is shown before the choice depends on the complexity level (Table 1).
+ * 1. choose: the child touches the larger treasure (before the ring around the key has drained
+ *    when there is a deadline). What is shown before the choice depends on the complexity level
+ *    (Table 1). The timer is not a crab walking to the key: a second, moving crab next to the one
+ *    on the track drew the eye away from the treasures and blurred who is who.
  * 2. reveal: both treasures in the three formats (pieces, digit, spoken word).
  * 3. move: the child touches the squares one by one, each touch puts a piece there (counted
  *    aloud), or touches the arrival square directly.
- * 4. crab: the crab does the same with the other treasure.
+ * 4. crab: the crab does the same with the other treasure (« Au crabe ! » first, so that its
+ *    counting is not taken for the child's).
  * 5. pause: everything stays on screen (track, operations, treasures) with a start button over
  *    it: a moment to look at the results before the next round, which starts on touch.
  */
@@ -29,7 +32,8 @@ import { phrases } from '../data/phrases'
 import { countAloud, hush, say, sayNow } from '../composables/useSpeech'
 import { sounds } from '../composables/useSounds'
 import { useSettings } from '../composables/useSettings'
-import TrackView, { type Lane } from './TrackView.vue'
+import TrackView, { type Lane, type Operation } from './TrackView.vue'
+import CharacterSprite from './CharacterSprite.vue'
 import CrabSprite from './CrabSprite.vue'
 import CoinIcon from './CoinIcon.vue'
 import CoinRows from './CoinRows.vue'
@@ -55,20 +59,14 @@ const settings = useSettings()
 type Phase = 'ready' | 'choose' | 'reveal' | 'move' | 'crab' | 'end' | 'pause'
 const phase = ref<Phase>(settings.readyButton && props.startReady ? 'ready' : 'choose')
 const speaking = ref<Side | null>(null)
-const crabRunning = ref(false)
-const crabEl = ref<HTMLElement | null>(null)
-const crabTop = ref('100%')
+/** the ring around the key drains during the deadline; it stops where it is when the child chooses */
+const draining = ref(false)
+const ringStarted = ref(false)
+const keyGone = ref(false)
 const choice = ref<Side | null>(null)
 const timedOut = ref(false)
 const opStep = ref(0)
 const message = ref('')
-/** each move shown as an operation on the numbered track: 7 + 4 = 11, 11 − 2 = 9 */
-interface Operation {
-  a: number
-  sign: '+' | '−'
-  b: number
-  result: number | null
-}
 /** per character: the move forward and, after an anemone, the move back (shown as two operations) */
 const operations = ref<Record<Lane, Operation[]>>({ player: [], crab: [] })
 function setOperation(lane: Lane, op: Operation) {
@@ -145,8 +143,7 @@ async function startRound() {
   if (props.problem.deadline !== null) {
     await nextFrame()
     if (!alive || phase.value !== 'choose') return
-    crabRunning.value = true
-    crabTop.value = '0%'
+    draining.value = ringStarted.value = true
     deadlineTimer = setTimeout(() => choose(null), props.problem.deadline * 1000)
   }
 }
@@ -166,8 +163,8 @@ async function choose(s: Side | null) {
   timedOut.value = s === null
   // when time runs out, the crab takes the larger treasure and the child gets the other one
   choice.value = s ?? other(props.problem.larger)
-  if (crabEl.value && crabRunning.value) crabTop.value = s === null ? '0%' : getComputedStyle(crabEl.value).top
-  crabRunning.value = false
+  draining.value = false
+  if (s === null) void keyToCrab()
   phase.value = 'reveal'
   emit('choice', s, rt)
 
@@ -212,6 +209,31 @@ async function choose(s: Side | null) {
   if (settings.autoMove) {
     await placeAll()
   } else armHint()
+}
+
+/** Time is up: the key flies to the crab on the track, which takes the larger treasure. */
+function keyToCrab() {
+  const src = document.querySelector('.deadline-key')?.getBoundingClientRect()
+  const dst = document.querySelector('svg.track [data-token="crab"]')?.getBoundingClientRect()
+  keyGone.value = true
+  if (!src || !dst || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const el = document.querySelector('.deadline-key')!.cloneNode(true) as SVGSVGElement
+  el.removeAttribute('class')
+  el.style.cssText = `position:fixed;left:0;top:0;width:${src.width}px;height:${src.height}px;z-index:40;pointer-events:none`
+  document.body.appendChild(el)
+  const [x0, y0] = [src.left, src.top]
+  const [x1, y1] = [dst.left + dst.width / 2 - src.width / 2, dst.top + dst.height / 2 - src.height / 2]
+  el.animate(
+    [
+      { transform: `translate(${x0}px, ${y0}px) scale(1)` },
+      { transform: `translate(${x0}px, ${y0}px) scale(1.35)`, offset: 0.2 },
+      { transform: `translate(${x1}px, ${y1}px) scale(0.5)`, opacity: 0.6 },
+    ],
+    { duration: 800, easing: 'ease-in-out' },
+  ).finished.then(
+    () => el.remove(),
+    () => el.remove(),
+  )
 }
 
 /** Pieces shown in a treasure after the choice; they leave the treasure as they are placed on the track. */
@@ -278,7 +300,7 @@ function fly(from: Side, square: number): Promise<void> {
   const x0 = src.left + src.width / 2 - size / 2
   const y0 = src.top + src.height / 2 - size / 2
   const x1 = dst.left + dst.width / 2 - size / 2
-  const y1 = dst.top + dst.height * 0.62 - size / 2
+  const y1 = dst.top + dst.height * 0.77 - size / 2
   const anim = el.animate(
     [
       { transform: `translate(${x0}px, ${y0}px) scale(1.3)` },
@@ -425,6 +447,8 @@ async function crabTurn() {
   message.value = ''
   busy.value = true
   await wait(300)
+  await say(phrases.crabTurn)
+  if (!alive) return
   await countPieces('crab')
   if (alive) await moveCharacter('crab')
 }
@@ -468,17 +492,12 @@ function nextRound() {
         :shake="shake"
         :hit="hit?.square ?? null"
         :crab-walking="phase === 'crab' && busy"
+        :operations="operations"
         @tap="tapSquare"
       />
     </div>
 
     <div class="flex min-h-[6vh] shrink-0 flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[clamp(1rem,3vh,1.6rem)] font-bold text-white" aria-live="polite">
-      <template v-for="lane in (['player', 'crab'] as const)" :key="lane">
-        <span v-for="(op, i) in operations[lane]" :key="i" class="op-chip" :class="lane === 'player' ? 'op-player' : 'op-crab'">
-          {{ op.a }} {{ op.sign }} {{ op.b }} =
-          <span :class="{ 'opacity-0': op.result === null }">{{ op.result ?? '?' }}</span>
-        </span>
-      </template>
       <span class="drop-shadow">{{ message }}</span>
     </div>
 
@@ -489,7 +508,7 @@ function nextRound() {
       </button>
     </div>
 
-    <!-- the two treasures, with the key and the crab in between when there is a deadline -->
+    <!-- the two treasures, with the key in between when there is a deadline -->
     <div v-else class="relative mx-auto grid min-h-0 w-full max-w-4xl flex-1 grid-cols-[1fr_auto_1fr] grid-rows-[minmax(0,44vh)] content-center gap-[2vw] px-[3vw] pb-[3vh]">
       <!-- pause between rounds: the start button floats over the results, which stay readable -->
       <button
@@ -502,20 +521,35 @@ function nextRound() {
         <svg viewBox="0 0 24 24" class="h-1/2 w-1/2 translate-x-[6%]"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" /></svg>
       </button>
       <div class="relative col-start-2 row-start-1 w-[9vh] min-w-14">
-        <template v-if="problem.deadline !== null">
-          <svg viewBox="0 0 60 60" class="absolute top-0 left-1/2 w-full -translate-x-1/2" aria-label="clé">
+        <!-- the key, with a ring that drains like a clock: the time left before the crab takes it -->
+        <svg
+          v-if="problem.deadline !== null"
+          viewBox="0 0 60 60"
+          class="deadline-key absolute top-1/2 left-1/2 w-full -translate-x-1/2 -translate-y-1/2 overflow-visible"
+          :class="keyGone ? 'opacity-0' : phase !== 'choose' ? 'opacity-50' : ''"
+          aria-label="clé"
+        >
+          <circle cx="30" cy="30" r="27" fill="#0b3954" fill-opacity="0.35" stroke="#ffffff" stroke-opacity="0.2" stroke-width="5" />
+          <circle
+            cx="30"
+            cy="30"
+            r="27"
+            fill="none"
+            stroke="#f8c73c"
+            stroke-width="5"
+            stroke-linecap="round"
+            pathLength="100"
+            stroke-dasharray="100"
+            transform="rotate(-90 30 30)"
+            class="key-ring"
+            :class="{ 'key-ring-run': ringStarted, 'key-ring-paused': !draining }"
+            :style="{ animationDuration: `${problem.deadline}s` }"
+          />
+          <g transform="translate(30 30) scale(0.62) translate(-34 -30)">
             <circle cx="18" cy="30" r="11" fill="none" stroke="#f8c73c" stroke-width="6" />
             <path d="M29 30 H54 M46 30 V40 M54 30 V42" stroke="#f8c73c" stroke-width="6" stroke-linecap="round" fill="none" />
-          </svg>
-          <div
-            ref="crabEl"
-            class="absolute left-1/2 w-full -translate-x-1/2"
-            :class="{ 'crab-run': crabRunning }"
-            :style="{ top: crabTop, transitionDuration: crabRunning ? `${problem.deadline}s` : '0s', marginTop: crabTop === '100%' ? '-9vh' : '0' }"
-          >
-            <CrabSprite :walking="crabRunning" />
-          </div>
-        </template>
+          </g>
+        </svg>
       </div>
 
       <button
@@ -566,7 +600,13 @@ function nextRound() {
             <template v-else>{{ q(s).value }}</template>
           </div>
           <CoinRows v-bind="revealCoins(s)" :waiting="phase === 'move' && choice === s && !busy" class="mt-[1.5vh] h-[14vh]" />
-          <span class="owner" :class="choice === s ? 'owner-player' : 'owner-crab'">{{ choice === s ? 'à toi' : 'au crabe' }}</span>
+          <span class="owner">
+            <svg viewBox="0 0 120 100" class="owner-avatar overflow-visible">
+              <CharacterSprite v-if="choice === s" :id="character" />
+              <CrabSprite v-else />
+            </svg>
+            {{ choice === s ? 'à toi' : 'au crabe' }}
+          </span>
           <!-- the larger treasure is marked, so that a wrong choice is visibly corrected -->
           <svg v-if="s === problem.larger && opStep !== 1 && opStep !== 2" viewBox="0 0 24 24" class="larger-star absolute top-[1.5vh] right-[1.5vh] h-[6vh] w-[6vh]" aria-label="le plus grand">
             <path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" fill="#f8c73c" stroke="#c98a1b" stroke-width="1.2" stroke-linejoin="round" />
@@ -591,20 +631,6 @@ function nextRound() {
 }
 .treasure-other {
   opacity: 0.8;
-}
-.op-chip {
-  border-radius: 9999px;
-  padding: 0 1rem;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.6;
-}
-.op-player {
-  background: #ffffff;
-  color: #0b3954;
-}
-.op-crab {
-  background: #e4572e;
-  color: #fff;
 }
 .start-button {
   display: flex;
@@ -643,22 +669,33 @@ function nextRound() {
 .owner {
   position: absolute;
   bottom: 1.5vh;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
   border-radius: 9999px;
-  padding: 0.1rem 0.9rem;
+  padding: 0.1rem 0.9rem 0.1rem 0.5rem;
+  background: #ffffff;
+  color: #0b3954;
   font-weight: 800;
   font-size: clamp(0.9rem, 2.4vh, 1.3rem);
 }
-.owner-player {
-  background: #0b3954;
-  color: #fff;
+.owner-avatar {
+  width: 1.9em;
+  height: 1.6em;
 }
-.owner-crab {
-  background: #e4572e;
-  color: #fff;
+.key-ring {
+  stroke-dashoffset: 0;
 }
-.crab-run {
-  transition-property: top, margin-top;
-  transition-timing-function: linear;
+.key-ring-run {
+  animation-name: key-drain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.key-ring-paused {
+  animation-play-state: paused;
+}
+@keyframes key-drain {
+  to { stroke-dashoffset: 100; }
 }
 .fade-out {
   animation: fade-out linear forwards;

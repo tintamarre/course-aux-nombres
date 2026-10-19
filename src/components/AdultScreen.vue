@@ -274,7 +274,7 @@ function confirmRemove(id: string, name: string) {
             <span>Déplacement automatique sur la piste (l'ordinateur pose les pièces en comptant)</span>
           </label>
           <label class="flex flex-wrap items-center gap-3">
-            <span>Temps minimum pour répondre quand le crabe court vers la clé</span>
+            <span>Temps minimum pour répondre quand la clé apparaît</span>
             <select v-model.number="settings.minDeadline" class="input">
               <option :value="0.25">0,25 s (article)</option>
               <option :value="1">1 s</option>

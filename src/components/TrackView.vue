@@ -18,6 +18,13 @@ import CoinIcon from './CoinIcon.vue'
 import { hazardKind } from '../engine/board'
 
 export type Lane = 'player' | 'crab'
+/** a move shown as an operation on the numbered track: 7 + 4 = 11, 11 − 2 = 9 */
+export interface Operation {
+  a: number
+  sign: '+' | '−'
+  b: number
+  result: number | null
+}
 
 const props = defineProps<{
   character: string
@@ -36,6 +43,8 @@ const props = defineProps<{
   shake: number | null
   hit: number | null
   crabWalking: boolean
+  /** per character, the operations of this turn: shown in a bubble next to its token */
+  operations: Record<Lane, Operation[]>
   /** range of squares that must be visible (the view scrolls to show it) */
   showFrom: number
   showTo: number
@@ -43,12 +52,14 @@ const props = defineProps<{
 const emit = defineEmits<{ tap: [square: number] }>()
 
 const CELL = 52
+/** squares are taller than wide: room for a big number above the gold piece, without fewer squares in view */
+const CELL_H = 66
 /** squares visible at once */
 const WINDOW = 20
 /** top of the squares: room above for the child's animal */
 const SQ_Y = 62
 /** total height: room below for the crab */
-const H = SQ_Y + CELL + 56
+const H = SQ_Y + CELL_H + 56
 const VIEW_W = WINDOW * CELL + 70
 /** x of the centre of square sq (0 = start, left of square 1) */
 const cx = (sq: number) => (sq - 0.5) * CELL
@@ -63,6 +74,26 @@ const offset = computed(() => {
 })
 const lastShown = computed(() => offset.value + WINDOW)
 /** a character is "out" as soon as it would be cut by the edge of the view */
+/**
+ * Each operation is a bubble next to its own character (the child's above the track, the crab's
+ * below), so that it is never attributed to the other one. It sits on the right of the token, or
+ * on its left near the right edge of the view. After a trap, the move back replaces the move forward.
+ */
+const BUBBLE_H = 34
+const bubbleText = (op: Operation) => `${op.a} ${op.sign} ${op.b} = ${op.result ?? '?'}`
+const bubbles = computed(() =>
+  (['player', 'crab'] as const).flatMap((lane) => {
+    const list = props.operations[lane]
+    const op = list[list.length - 1]
+    if (!op) return []
+    const pos = lane === 'player' ? props.player : props.crab
+    const w = bubbleText(op).length * 13 + 22
+    const right = cx(pos) + 30 + w <= (lastShown.value - 0.5) * CELL
+    const x = right ? cx(pos) + 30 : cx(pos) - 30 - w
+    const y = lane === 'player' ? SQ_Y - 52 : SQ_Y + CELL_H + 10
+    return [{ lane, op, w, x, y, right }]
+  }),
+)
 const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 && offset.value > 0 ? 'left' : pos > lastShown.value - 1 ? 'right' : null)
 </script>
 
@@ -73,9 +104,9 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
     </defs>
     <g clip-path="url(#track-window)">
       <g class="track-scroll" :style="{ transform: `translateX(${-offset * CELL}px)` }">
-        <rect x="-58" :y="SQ_Y - 8" :width="length * CELL + 62" :height="CELL + 16" rx="18" fill="#ffffff" fill-opacity="0.12" />
+        <rect x="-58" :y="SQ_Y - 8" :width="length * CELL + 62" :height="CELL_H + 16" rx="18" fill="#ffffff" fill-opacity="0.12" />
         <!-- start -->
-        <circle cx="-29" :cy="SQ_Y + CELL / 2" r="21" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.45" stroke-dasharray="5 5" />
+        <circle cx="-29" :cy="SQ_Y + CELL_H / 2" r="21" fill="#ffffff" fill-opacity="0.12" stroke="#ffffff" stroke-opacity="0.45" stroke-dasharray="5 5" />
 
         <!-- squares; the tap area of each square covers the full height of the track -->
         <g
@@ -83,7 +114,7 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
           :key="sq"
           :class="{ 'square-shake': shake === sq }"
           :data-next="next === sq ? '' : undefined"
-          :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL / 2}px` }"
+          :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL_H / 2}px` }"
           @pointerdown="tappable && emit('tap', sq)"
         >
           <rect :x="cx(sq) - CELL / 2" y="0" :width="CELL" :height="H" fill="transparent" />
@@ -91,7 +122,7 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
             :x="cx(sq) - CELL / 2 + 2"
             :y="SQ_Y"
             :width="CELL - 4"
-            :height="CELL"
+            :height="CELL_H"
             rx="10"
             :data-sq="sq"
             :fill="sq === length ? '#ffe08a' : '#f3dfae'"
@@ -105,25 +136,25 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
             :x="cx(sq) - CELL / 2 + 2"
             :y="SQ_Y"
             :width="CELL - 4"
-            :height="CELL"
+            :height="CELL_H"
             rx="10"
             fill="#ffffff"
             fill-opacity="0.55"
             stroke="#ffffff"
             stroke-width="4"
           />
-          <text :x="cx(sq)" :y="SQ_Y + 19" text-anchor="middle" class="square-number">{{ sq }}</text>
+          <text :x="cx(sq)" :y="SQ_Y + 28" text-anchor="middle" class="square-number">{{ sq }}</text>
           <!-- finish flag -->
           <g v-if="sq === length" :transform="`translate(${cx(sq) + 10} ${SQ_Y - 34})`">
             <path d="M0 0 V34" stroke="#5b4a2f" stroke-width="3" />
             <path d="M2 2 H20 L15 8 L20 14 H2 Z" fill="#ef476f" />
           </g>
           <!-- gold piece, under the square number (the square number is what is counted) -->
-          <g v-if="placed.includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL - 15}px` }">
-            <CoinIcon :x="cx(sq)" :y="SQ_Y + CELL - 15" :r="12" />
+          <g v-if="placed.includes(sq)" class="coin-pop" :style="{ transformOrigin: `${cx(sq)}px ${SQ_Y + CELL_H - 15}px` }">
+            <CoinIcon :x="cx(sq)" :y="SQ_Y + CELL_H - 15" :r="12" />
           </g>
           <!-- trap (shared), drawn over the gold piece so it stays visible while counting -->
-          <g v-if="hazards.includes(sq)" :transform="`translate(${cx(sq)} ${SQ_Y + CELL - 8}) scale(0.8)`">
+          <g v-if="hazards.includes(sq)" :transform="`translate(${cx(sq)} ${SQ_Y + CELL_H - 8}) scale(0.8)`">
             <g :class="{ 'hazard-hit': hit === sq }" :data-hazard="hazardKind(hazards, sq)">
               <template v-if="hazardKind(hazards, sq) === 'anemone'">
                 <g v-for="k in 5" :key="k">
@@ -168,8 +199,20 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
         <g class="token" :style="{ transform: `translate(${cx(player) - 38}px, ${SQ_Y - 62}px)` }">
           <svg width="76" height="64" class="overflow-visible"><CharacterSprite :id="character" /></svg>
         </g>
-        <g class="token" :style="{ transform: `translate(${cx(crab) - 30}px, ${SQ_Y + CELL + 2}px)` }">
+        <g class="token" data-token="crab" :style="{ transform: `translate(${cx(crab) - 30}px, ${SQ_Y + CELL_H + 2}px)` }">
           <svg width="60" height="50" class="overflow-visible"><CrabSprite :walking="crabWalking" /></svg>
+        </g>
+
+        <!-- the operation of each character, in a bubble next to its token -->
+        <g v-for="b in bubbles" :key="b.lane" class="bubble" :data-bubble="b.lane" :style="{ transform: `translate(${b.x}px, ${b.y}px)` }">
+          <path
+            :d="b.right ? `M0 ${BUBBLE_H / 2 - 6} L-9 ${BUBBLE_H / 2} L0 ${BUBBLE_H / 2 + 6} Z` : `M${b.w} ${BUBBLE_H / 2 - 6} L${b.w + 9} ${BUBBLE_H / 2} L${b.w} ${BUBBLE_H / 2 + 6} Z`"
+            fill="#ffffff"
+          />
+          <rect x="0" y="0" :width="b.w" :height="BUBBLE_H" :rx="BUBBLE_H / 2" fill="#ffffff" />
+          <text :x="b.w / 2" :y="BUBBLE_H / 2 + 8" text-anchor="middle" class="bubble-text">
+            {{ b.op.a }} {{ b.op.sign }} {{ b.op.b }} = <tspan :class="{ 'opacity-0': b.op.result === null }">{{ b.op.result ?? '?' }}</tspan>
+          </text>
         </g>
       </g>
     </g>
@@ -185,7 +228,7 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
     <g v-for="who in (['player', 'crab'] as const)" :key="who">
       <g
         v-if="out(who === 'player' ? player : crab)"
-        :transform="`translate(${out(who === 'player' ? player : crab) === 'left' ? -50 : VIEW_W - 100} ${who === 'player' ? 8 : SQ_Y + CELL + 8})`"
+        :transform="`translate(${out(who === 'player' ? player : crab) === 'left' ? -50 : VIEW_W - 100} ${who === 'player' ? 8 : SQ_Y + CELL_H + 8})`"
         class="edge-marker"
       >
         <rect x="0" y="0" width="38" height="38" rx="19" fill="#0b3954" fill-opacity="0.55" />
@@ -216,6 +259,17 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
 .edge-marker {
   pointer-events: none;
 }
+.bubble {
+  transition: transform 0.11s ease-out;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 20, 40, 0.35));
+}
+.bubble-text {
+  font-weight: 800;
+  font-size: 22px;
+  fill: #0b3954;
+  font-variant-numeric: tabular-nums;
+}
 .finish-label {
   font-weight: 800;
   font-size: 15px;
@@ -223,8 +277,8 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
 }
 .square-number {
   font-weight: 800;
-  font-size: 17px;
-  fill: #6b4c1c;
+  font-size: 27px;
+  fill: #5a3d12;
   pointer-events: none;
 }
 .coin-pop {

@@ -34,7 +34,7 @@ export const VERDICTS = {
   timeout: [
     'Trop tard ! Le crabe a pris le plus grand trésor.',
     'Le crabe a été plus rapide ! Il prend le plus grand trésor.',
-    'Oh, le crabe est arrivé le premier à la clé !',
+    'Oh, le temps est passé ! Le crabe prend la clé.',
   ],
 } as const
 
@@ -74,6 +74,8 @@ export const phrases = {
   verdictTimeout: () => pickVariant(VERDICTS.timeout),
   operation: (a: number, op: '+' | '-', b: number, result: number) => `${operationWords(a, op, b)}, égale ${numberWord(result)}.`,
   arrived: 'Arrivé !',
+  /** said before the crab counts its pieces, so that its counting is not taken for the child's */
+  crabTurn: 'Au crabe !',
   hazardPlayer: (kind: HazardKind) => `${HAZARDS[kind].player} Tu recules de ${numberWord(HAZARD_PENALTY)}.`,
   hazardCrab: (kind: HazardKind) => HAZARDS[kind].crab,
   comment: (key: keyof typeof COMMENTS) => pickVariant(COMMENTS[key]),
