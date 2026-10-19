@@ -61,6 +61,10 @@ const SQ_Y = 62
 /** total height: room below for the crab */
 const H = SQ_Y + CELL_H + 56
 const VIEW_W = WINDOW * CELL + 70
+/** size of the characters on the track: the child's animal above the squares, the crab below */
+const TOKEN = { player: { w: 76, h: 64 }, crab: { w: 60, h: 50 } } as const
+/** left edge of the finish marker shown at the right of the view on a long track */
+const FINISH_MARKER_X = VIEW_W - 118
 /** x of the centre of square sq (0 = start, left of square 1) */
 const cx = (sq: number) => (sq - 0.5) * CELL
 const squares = computed(() => Array.from({ length: props.length }, (_, k) => k + 1))
@@ -74,10 +78,13 @@ const offset = computed(() => {
 })
 const lastShown = computed(() => offset.value + WINDOW)
 /** a character is "out" as soon as it would be cut by the edge of the view */
+const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 && offset.value > 0 ? 'left' : pos > lastShown.value - 1 ? 'right' : null)
 /**
  * Each operation is a bubble next to its own character (the child's above the track, the crab's
  * below), so that it is never attributed to the other one. It sits on the right of the token, or
- * on its left near the right edge of the view. After a trap, the move back replaces the move forward.
+ * on its left near the right edge of the view, the side being chosen once for the whole move so
+ * that it never jumps across the token while counting. After a trap, the move back replaces the
+ * move forward. A character out of view has no bubble (its arrow at the edge stands for it).
  */
 const BUBBLE_H = 34
 const bubbleText = (op: Operation) => `${op.a} ${op.sign} ${op.b} = ${op.result ?? '?'}`
@@ -85,18 +92,22 @@ const bubbles = computed(() =>
   (['player', 'crab'] as const).flatMap((lane) => {
     const list = props.operations[lane]
     const op = list[list.length - 1]
-    if (!op) return []
     const pos = lane === 'player' ? props.player : props.crab
+    if (!op || out(pos)) return []
     const w = bubbleText(op).length * 13 + 22
-    // half the token width (animal 76, crab 60) plus room for the tail of the bubble
-    const gap = (lane === 'player' ? 38 : 30) + 16
-    const right = cx(pos) + gap + w <= (lastShown.value - 0.5) * CELL
+    // half the token width plus room for the tail of the bubble
+    const gap = TOKEN[lane].w / 2 + 16
+    // rightmost square of the move: a bubble on the right must still fit there
+    const furthest = op.sign === '+' ? op.a + op.b : op.a
+    // the finish marker shares the row of the child's bubble
+    const shift = offset.value * CELL
+    const limit = lane === 'player' && props.length > lastShown.value ? Math.min((lastShown.value - 0.5) * CELL, FINISH_MARKER_X - 8 + shift) : (lastShown.value - 0.5) * CELL
+    const right = cx(furthest) + gap + w <= limit
     const x = right ? cx(pos) + gap : cx(pos) - gap - w
     const y = lane === 'player' ? SQ_Y - 52 : SQ_Y + CELL_H + 10
     return [{ lane, op, w, x, y, right }]
   }),
 )
-const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 && offset.value > 0 ? 'left' : pos > lastShown.value - 1 ? 'right' : null)
 </script>
 
 <template>
@@ -198,11 +209,11 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
         </g>
 
         <!-- characters, drawn last so they stay on top: the child above the track, the crab below -->
-        <g class="token" :style="{ transform: `translate(${cx(player) - 38}px, ${SQ_Y - 62}px)` }">
-          <svg width="76" height="64" class="overflow-visible"><CharacterSprite :id="character" /></svg>
+        <g class="token" :style="{ transform: `translate(${cx(player) - TOKEN.player.w / 2}px, ${SQ_Y - 62}px)` }">
+          <svg :width="TOKEN.player.w" :height="TOKEN.player.h" class="overflow-visible"><CharacterSprite :id="character" /></svg>
         </g>
-        <g class="token" data-token="crab" :style="{ transform: `translate(${cx(crab) - 30}px, ${SQ_Y + CELL_H + 2}px)` }">
-          <svg width="60" height="50" class="overflow-visible"><CrabSprite :walking="crabWalking" /></svg>
+        <g class="token" data-token="crab" :style="{ transform: `translate(${cx(crab) - TOKEN.crab.w / 2}px, ${SQ_Y + CELL_H + 2}px)` }">
+          <svg :width="TOKEN.crab.w" :height="TOKEN.crab.h" class="overflow-visible"><CrabSprite :walking="crabWalking" /></svg>
         </g>
 
         <!-- the operation of each character, in a bubble next to its token -->
@@ -220,7 +231,7 @@ const out = (pos: number): 'left' | 'right' | null => (pos < offset.value + 1 &&
     </g>
 
     <!-- the finish, when it is out of view on a long track -->
-    <g v-if="length > lastShown" :transform="`translate(${VIEW_W - 118} ${SQ_Y - 32})`" class="edge-marker">
+    <g v-if="length > lastShown" :transform="`translate(${FINISH_MARKER_X} ${SQ_Y - 32})`" class="edge-marker">
       <path d="M0 0 V30" stroke="#ffffff" stroke-opacity="0.8" stroke-width="3" />
       <path d="M2 2 H20 L15 8 L20 14 H2 Z" fill="#ef476f" />
       <text x="24" y="14" class="finish-label">{{ length }}</text>
